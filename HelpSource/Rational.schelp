@@ -190,8 +190,8 @@ s.waitForBoot{
     
     l = { 
         loop {
-            f = (f * is.choose).asFloat;
-            (instrument: \blip, freq: 60+(f%13940.3), nharms: rrand(2,10), dur: is.choose.asFloat).play;
+            f = (f * is.choose.postln).asFloat;
+            (instrument: \blip, freq: 60+(f%13940.3).postln, nharms: rrand(2,10), dur: is.choose.asFloat).play;
             (is.choose.asFloat/pi).wait;
         } 
     };
