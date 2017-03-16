@@ -204,25 +204,25 @@ s.waitForBoot{
 
             (
                 instrument: \blip,
-                freq:       f.postln,
+                freq:       f.post,
                 nharms:     rrand(1,4),
                 dur:        is.choose.asFloat,
                 pan:        rrand(-0.75,0.75),
                 amp:        rrand(0.01,0.1)
             ).play;
 
-            (ds.choose * p).asFloat.wait;
+            " Hz\n    dur: ".post;
+            (ds.choose.postln * p).asFloat.wait; 
+            
         }
     };
     
     
     fork {
-        var n=0%/1;
         loop {
-            Post << format("\n\n========== Section % ==========\n\n", n);
             p = ps.choose;
+            Post << format("\n\n========== Tempo % ==========\n\n", p);
             rrand(3,13.0).wait;
-            n = n + (1%/2);
         }
     };
 
