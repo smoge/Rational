@@ -1,0 +1,10 @@
+(
+\name: "Rational",
+\summary: "Rational Numbers extension to SuperCollider",
+\version: "1.0.0",
+\schelp: "Rational",
+\url: "https://github.com/smoge/Rational",
+\dependencies: ["UnitTesting"],
+\copyright: "Bernardo Barros. 2017",
+\license: "GPLv3"
+)
