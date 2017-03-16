@@ -185,8 +185,6 @@ s.waitForBoot{
     f = rrand(60.9,14000.15);
     
     s.sync;
-    FreqScope.new(400, 200, 0, server: s);
-    s.sync;
     
     l = { 
         loop {
