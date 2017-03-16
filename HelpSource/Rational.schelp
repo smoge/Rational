@@ -170,9 +170,7 @@ SUBSECTION:: Sound Example
 
 code::
 (
-var is, f, l, ds, p, ps;
-
-thisThread.randSeed = 37;
+var is, f, l, ds, p, ps,next_i;
 
 s.waitForBoot{
 
@@ -183,23 +181,33 @@ s.waitForBoot{
     }).add;
 
     is = [ 8%/15, 5%/9, 9%/16, 3%/5, 5%/8, 2%/3, 45%/64, 32%/45, 3%/4, 4%/5, 5%/6, 8%/9, 9%/10, 15%/16, 16%/15, 10%/9, 9%/8, 6%/5, 5%/4, 4%/3, 45%/32, 64%/45, 3%/2, 8%/5, 5%/3, 16%/9,9%/5, 15%/8 ];
-
+    
     ds = Array.fill2D(25, 25, {arg r, c; (c+11)%/(r+13)}).flat.pow(pi) / pi;
-
+    
     ps = Array.geom(7, 4%/1, 4%/7);
-
-    f = rrand(60.0,3060.0);
-
-    s.sync;
+    
+    f = rrand(20,16000);
 
     l = {
         loop {
-            f = f * is.choose.asFloat;
-            (instrument: \blip, freq: (60+(f%3060.0)), nharms: rrand(1,4), dur: is.choose.asFloat, pan: rrand(-0.75,0.75), amp: rrand(0.01,0.1)).play;
+            next_i=is.choose;
+            if ( f <= 200  ) { next_i = max(next_i,next_i.reciprocal) };
+            if ( f >= 2600 ) { next_i = min(next_i,next_i.reciprocal) };
+            f = f * next_i.post.asFloat; " -> ".post;
+
+            (
+                instrument: \blip,
+                freq:       f.postln,
+                nharms:     rrand(1,4),
+                dur:        is.choose.asFloat,
+                pan:        rrand(-0.75,0.75),
+                amp:        rrand(0.01,0.1)
+            ).play;
+            
             (ds.choose * p).asFloat.wait;
         }
     };
-
+    
     fork {
         loop {
             p = ps.choose;
@@ -207,7 +215,10 @@ s.waitForBoot{
         }
     };
 
+	s.sync;
+
     { l.fork } ! 3
 }
 )
 ::
+
