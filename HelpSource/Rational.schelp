@@ -194,7 +194,6 @@ s.waitForBoot{
 
     l = {
         loop {
-            Post << "Interval <- ";
             f = f * is.choose.postln.asFloat;
             (instrument: \blip, freq: (60+(f%3060.0)), nharms: rrand(1,4), dur: is.choose.asFloat, pan: rrand(-0.75,0.75), amp: rrand(0.01,0.1)).play;
             (ds.choose * p).asFloat.wait;
