@@ -1,6 +1,6 @@
 Rational : Number {
 	var <numerator, <denominator;
-	
+
 	*new {  arg numerator=1.0, denominator=1.0;
 		^super.newCopyArgs(numerator, denominator).reduce
 	}
@@ -8,6 +8,8 @@ Rational : Number {
 	reduce {
 		var d;
 		if (this.numerator.isKindOf(Number)) {
+            if (numerator == inf) { ^inf };
+            if (numerator.isNaN || denominator.isNaN) { ^0/0 };
 			if (this.numerator.isKindOf(Rational) || this.denominator.isKindOf(Rational)){
 				^(numerator.asRational / denominator.asRational)
 			};
@@ -18,7 +20,7 @@ Rational : Number {
 					}{
 						"Rational has zero denominator".error;^inf
 					}
-				};
+                };
 				d = this.factor;
 				numerator = ((this.numerator/d).abs * d.sign).round;
 				denominator = (this.denominator/d).abs.round;
@@ -164,9 +166,12 @@ Rational : Number {
 
 + SimpleNumber {
 	asRational { arg maxDenominator=100,fasterBetter=false;
-		var fraction = this.asFraction(maxDenominator,fasterBetter);
-		^Rational(fraction[0], fraction[1])
-	}
+		var fraction;
+        if (this == inf) { ^inf } {
+            fraction = this.asFraction(maxDenominator,fasterBetter);
+            ^Rational(fraction[0], fraction[1])
+        }
+    }
 
 	isRational { ^false }
 
