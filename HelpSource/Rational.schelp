@@ -170,13 +170,13 @@ SUBSECTION:: Sound Example
 
 code::
 (
-var is, f, l;
+var is, f, l, ds, p, ps;
 
-thisThread.randSeed = 110;
+thisThread.randSeed = 37;
 
 s.waitForBoot{
 
-    SynthDef(\blip, { | out, freq = 440, amp = 0.1, nharms = 10, pan = 0, gate = 1 |
+    SynthDef(\blip, { | out, freq = 440, amp = 0.05, nharms = 10, pan = 0, gate = 1 |
         var audio = Blip.ar(freq, nharms, amp);
         var env = Linen.kr(gate, doneAction: 2);
         OffsetOut.ar(out, Pan2.ar(audio, pan, env) );
@@ -184,20 +184,31 @@ s.waitForBoot{
 
     is = [ 8%/15, 5%/9, 9%/16, 3%/5, 5%/8, 2%/3, 45%/64, 32%/45, 3%/4, 4%/5, 5%/6, 8%/9, 9%/10, 15%/16, 16%/15, 10%/9, 9%/8, 6%/5, 5%/4, 4%/3, 45%/32, 64%/45, 3%/2, 8%/5, 5%/3, 16%/9,9%/5, 15%/8 ];
 
-    f = rrand(60.0,15300.0);
+    ds = Array.fill2D(25, 25, {arg r, c; (c+11)%/(r+13)}).flat.pow(pi) / pi;
+
+    ps = Array.geom(7, 4%/1, 4%/7);
+
+    f = rrand(60.0,3060.0);
 
     s.sync;
 
     l = {
         loop {
-            f = (f * is.choose.postln).asFloat;
-            (instrument: \blip, freq: 60+(f%15300.0).postln, nharms: rrand(2,10), dur: is.choose.asFloat).play;
-            (is.choose.asFloat/pi).wait;
+            Post << "Interval <- ";
+            f = f * is.choose.postln.asFloat;
+            (instrument: \blip, freq: (60+(f%3060.0)), nharms: rrand(1,4), dur: is.choose.asFloat, pan: rrand(-0.75,0.75), amp: rrand(0.01,0.1)).play;
+            (ds.choose * p).asFloat.wait;
         }
     };
 
-    { l.fork } ! 4
+    fork {
+        loop {
+            p = ps.choose;
+            rrand(3,13.0).wait;
+        }
+    };
+
+    { l.fork } ! 3
 }
 )
 ::
-
