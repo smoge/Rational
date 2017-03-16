@@ -193,7 +193,11 @@ s.waitForBoot{
             next_i=is.choose;
             if ( f <= 200  ) { next_i = max(next_i,next_i.reciprocal) };
             if ( f >= 2600 ) { next_i = min(next_i,next_i.reciprocal) };
-            f = f * next_i.post.asFloat; " -> ".post;
+            
+            " -> ".post;
+            f = f * next_i.post.asFloat;
+            " -> ".post;
+
             (
                 instrument: \blip,
                 freq:       f.postln,
@@ -221,7 +225,6 @@ s.waitForBoot{
     s.sync;
     
     { l.fork } ! 3
-
 }
 )
 ::
