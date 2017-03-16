@@ -182,14 +182,14 @@ s.waitForBoot{
 
     is = [ 8%/15, 5%/9, 9%/16, 3%/5, 5%/8, 2%/3, 45%/64, 32%/45, 3%/4, 4%/5, 5%/6, 8%/9, 9%/10, 15%/16, 16%/15, 10%/9, 9%/8, 6%/5, 5%/4, 4%/3, 45%/32, 64%/45, 3%/2, 8%/5, 5%/3, 16%/9,9%/5, 15%/8 ];
     
-    f = rrand(60.9,14000.15);
+    f = rrand(60.0,15300.0);
     
     s.sync;
     
     l = { 
         loop {
             f = (f * is.choose.postln).asFloat;
-            (instrument: \blip, freq: 60+(f%13940.3).postln, nharms: rrand(2,10), dur: is.choose.asFloat).play;
+            (instrument: \blip, freq: 60+(f%15300.0).postln, nharms: rrand(2,10), dur: is.choose.asFloat).play;
             (is.choose.asFloat/pi).wait;
         } 
     };
