@@ -197,7 +197,7 @@ s.waitForBoot{
 
             (
                 instrument: \blip,
-                freq:       f.postln,
+                freq:       f,
                 nharms:     rrand(1,4),
                 dur:        is.choose.asFloat,
                 pan:        rrand(-0.75,0.75),
