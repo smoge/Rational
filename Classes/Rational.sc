@@ -7,7 +7,7 @@ Rational : Number {
 
 	reduce {
 		var d;
-		^if (this.numerator.isKindOf(Number)) {
+		if (this.numerator.isKindOf(Number)) {
 
             // inf, -inf or nan cases:
             if (numerator == inf) { ^inf };
