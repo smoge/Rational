@@ -54,7 +54,7 @@ TestRational : UnitTest {
 		);
 	}
 
-	test_Setter {
+	test_Setters {
 
 		var rat;
 
@@ -68,6 +68,74 @@ TestRational : UnitTest {
 		);
 
 	}
+
+    test_inf_nan {
+
+        this.assert(
+            Rational(1,1) + inf == inf,
+            format( "Rational(1,1) + inf == inf test passed.")
+        );
+
+        this.assert(
+            Rational(inf,1) == inf,
+            format( "Rational(inf,1) == inf test passed.")
+        );
+
+        this.assert(
+            Rational(-inf,1) == -inf,
+            format( "Rational(-inf,1) == -inf test passed.")
+        );
+
+        this.assert(
+            Rational(inf,rrand(-1000,1000)) == inf,
+            format( "Rational(inf,rrand(-1000,1000)) == inf test passed.")
+        );
+
+        this.assert(
+            Rational(-inf,rrand(-1000,1000)) == -inf,
+            format( "Rational(-inf,rrand(-1000,1000)) == -inf test passed.")
+        );
+
+        this.assert(
+            Rational(0,inf) == Rational(0,1),
+            format( "Rational(0,inf) == Rational(0,1) test passed.")
+        );
+
+        this.assert(
+            Rational(rrand(-1000,1000),inf) == Rational(0,1),
+            format( "Rational(rrand(-1000,1000),inf) == Rational(0,1) test passed.")
+        );
+
+        this.assert(
+            Rational(1,0/0).isNaN,
+            format( "Rational(1,0/0).isNaN test passed.")
+        );
+
+        this.assert(
+            Rational(0/0,1).isNaN,
+            format( "Rational(0/0,1).isNaN test passed.")
+        );
+
+        this.assert(
+            Rational(1,1).numerator_(inf) === inf,
+            format( "Rational(1,1).numerator_(inf) === inf test passed.")
+        );
+
+        this.assert(
+            Rational(1,1).denominator(inf) == Rational(1,1),
+            format( "Rational(1,1).denominator(inf) == Rational(1,1) test passed.")
+        );
+
+        this.assert(
+            Rational(1,1).numerator_(0/0).isNaN,
+            format( "Rational(1,1).numerator_(0/0).isNaN test passed.")
+        );
+
+        this.assert(
+            Rational(1,1).denominator_(0/0).isNaN,
+            format( "Rational(1,1).denominator_(0/0).isNaN test passed.")
+        );
+    }
 
 	test_BigNumbers {
 
