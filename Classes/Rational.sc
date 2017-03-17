@@ -7,18 +7,21 @@ Rational : Number {
 
 	reduce {
 		var d;
-		if (this.numerator.isKindOf(Number)) {
+		^if (this.numerator.isKindOf(Number)) {
 
-            // if numerator or denominator are inf, -inf or nan cases:
+            // inf, -inf or nan cases:
             if (numerator == inf) { ^inf };
             if (numerator == -inf) { ^-inf };
-            if (denominator == inf) { ˆ(0 %/ 1) };
-            if (denominator == -inf) { ˆ(1/(-inf)) };
+            if (denominator == inf) { ^(0 %/ 1) };
+            if (denominator == -inf) { ^(1/(-inf)) };
             if (numerator.isNaN || denominator.isNaN) { ^0/0 };
 
+            // isRational:
 			if (this.numerator.isKindOf(Rational) || this.denominator.isKindOf(Rational)){
 				^(numerator.asRational / denominator.asRational)
 			};
+
+            // is rounded:
 			if (this.numerator.frac == 0 && this.denominator.frac == 0) {
 				if (denominator == 0) {
 					if (numerator == 0) {
@@ -32,9 +35,11 @@ Rational : Number {
 				denominator = (this.denominator/d).abs.round;
 				^Rational.fromReducedTerms(numerator,denominator);
 			} {
+                //
 				^(this.numerator / this.denominator).asRational
 			}
 		} {
+            // is String:
 			if (this.numerator.isKindOf(String)) {
 				^this.numerator.asRational
 			}
