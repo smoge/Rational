@@ -8,9 +8,14 @@ Rational : Number {
 	reduce {
 		var d;
 		if (this.numerator.isKindOf(Number)) {
+
+            // if numerator or denominator are inf, -inf or nan cases:
             if (numerator == inf) { ^inf };
+            if (numerator == -inf) { ^-inf };
             if (denominator == inf) { ˆ(0 %/ 1) };
+            if (denominator == -inf) { ˆ(1/(-inf)) };
             if (numerator.isNaN || denominator.isNaN) { ^0/0 };
+
 			if (this.numerator.isKindOf(Rational) || this.denominator.isKindOf(Rational)){
 				^(numerator.asRational / denominator.asRational)
 			};
