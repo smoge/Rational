@@ -49,9 +49,9 @@ Rational : Number {
 		^d.asFloat
 	}
 
-	numerator_ { arg newNum=1.0; numerator = newNum; this.reduce }
+	numerator_ { arg newNumerator=1.0; numerator = newNumerator; ^this.reduce }
 
-	denominator_ { arg newDen=1.0; denominator = newDen; this.reduce }
+	denominator_ { arg newDenominator=1.0; denominator = newDenominator; ^this.reduce }
 
 	performBinaryOpOnSimpleNumber { arg aSelector, aNumber, adverb;
 		^aNumber.asRational.perform(aSelector, this, adverb)
