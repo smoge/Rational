@@ -62,6 +62,18 @@ Rational : Number {
 		^d.asFloat
 	}
 
+    sign {
+        if (this.numerator == 0 ) {
+            ^0
+        } {
+            if ( this.isPositive ) {
+                ^1
+            } {
+                ^(-1)
+            }
+        }
+    }
+
 	numerator_ { arg newNumerator=1.0; numerator = newNumerator; ^this.reduce }
 
 	denominator_ { arg newDenominator=1.0; denominator = newDenominator; ^this.reduce }
