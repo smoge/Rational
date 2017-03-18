@@ -15,8 +15,8 @@ Rational : Number {
 		// check for bad terms
 		if (numerator == inf) { ^inf };
 		if (numerator == -inf) { ^-inf };
-		if (denominator == inf) { ^(0 %/ 1) };
-		if (denominator == -inf) { ^(1/(-inf)) };
+		if (denominator == inf) { ^this.class.new(0, 1) };
+		if (denominator == -inf) { ^1 / -inf };
 		if (numerator.isNaN || denominator.isNaN) { ^0/0 };
 
 		// at least one Rational
@@ -75,7 +75,7 @@ Rational : Number {
 
 	isRational { ^true }
 
-	%/ { arg aNumber; ^Rational(this, aNumber) }
+	%/ { arg aNumber; ^this.class.new(this, aNumber) }
 
 	asRational { ^this }
 
@@ -85,7 +85,7 @@ Rational : Number {
 
 	asInt { ^this.asInteger }
 
-	reciprocal { ^Rational(this.denominator, this.numerator) }
+	reciprocal { ^this.class.new(this.denominator, this.numerator) }
 
 	printOn { arg stream;
 		stream <<  numerator << " %/ " << denominator
@@ -134,7 +134,7 @@ Rational : Number {
 	pow { arg n;
 
 		^case
-		{ n == 0 } { Rational(1,1) }
+		{ n == 0 } { this.class.new(1,1) }
 
 		{ n > 0 } {
 			this.class.new(
@@ -209,8 +209,8 @@ Rational : Number {
 }
 
 + Number {
-	numerator { ^this}
-	denominator { ^1}
+	numerator { ^this }
+	denominator { ^1 }
 	rational { arg denominator=1; ^Rational(this, denominator) }
 }
 
