@@ -216,7 +216,7 @@ Rational : Number {
 
 + SequenceableCollection {
 	asRational { arg maxDenominator = 100;
-		^this.collect { |i| i.asRational(maxDenominator) }
+		^this.collect { |item| item.asRational(maxDenominator) }
 	}
 }
 
