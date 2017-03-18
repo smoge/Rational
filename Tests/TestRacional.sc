@@ -14,7 +14,7 @@ TestRational : UnitTest {
 
 	setUp { thisThread.randSeed = seed }
 
-	test_Zeros {
+/*	test_Zeros {
 		var array;
 
 		this.assert(
@@ -52,7 +52,7 @@ TestRational : UnitTest {
 			Rational(0,9999),
 			format( "Zeros test with Rational(0,1)==Rational(0,9999) passed.")
 		);
-	}
+	}*/
 
 	test_Setters {
 
