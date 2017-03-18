@@ -63,15 +63,9 @@ Rational : Number {
 	}
 
     sign {
-        if (this.numerator == 0 ) {
-            ^0
-        } {
-            if ( this.isPositive ) {
-                ^1
-            } {
-                ^(-1)
-            }
-        }
+        if (this.numerator == 0 ) { ^0    };
+        if (this.numerator >  0 ) { ^1    };
+        if (this.numerator <  0 ) { ^(-1) };
     }
 
 	numerator_ { arg newNumerator=1.0; numerator = newNumerator; ^this.reduce }
