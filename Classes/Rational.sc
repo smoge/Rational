@@ -15,8 +15,8 @@ Rational : Number {
 		// check for bad terms
 		if (numerator == inf) { ^inf };
 		if (numerator == -inf) { ^-inf };
-		if (denominator == inf) { ˆ(0 %/ 1) };
-		if (denominator == -inf) { ˆ(1/(-inf)) };
+		if (denominator == inf) { ^(0 %/ 1) };
+		if (denominator == -inf) { ^(1/(-inf)) };
 		if (numerator.isNaN || denominator.isNaN) { ^0/0 };
 
 		// at least one Rational
