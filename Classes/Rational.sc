@@ -84,6 +84,8 @@ Rational : Number {
 		stream <<  numerator << " %/ " << denominator;
 	}
 
+    isNaN { ^false }
+
 	hash { ^this.instVarHash }
 
 	+ { arg aNumber, adverb;
