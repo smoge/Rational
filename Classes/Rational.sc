@@ -72,6 +72,10 @@ Rational : Number {
 
 	denominator_ { arg newDenominator=1.0; denominator = newDenominator; ^this.reduce }
 
+    isNumeratorPowerOfTwo { ^this.numerator.asInteger.isPowerOfTwo}
+
+    isDenominatorPowerOfTwo { ^this.denominator.asInteger.isPowerOfTwo}
+
 	performBinaryOpOnSimpleNumber { arg aSelector, aNumber, adverb;
 		^aNumber.asRational.perform(aSelector, this, adverb)
 	}
