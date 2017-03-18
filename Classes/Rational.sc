@@ -7,39 +7,38 @@ Rational : Number {
 
 	reduce {
 		var d;
-		if (this.numerator.isKindOf(Number)) {
+		^if (this.numerator.isKindOf(Number)) {
 
-            // inf, -inf or nan cases:
+            // check for bad terms
             if (numerator == inf) { ^inf };
             if (numerator == -inf) { ^-inf };
-            if (denominator == inf) { ^(0 %/ 1) };
-            if (denominator == -inf) { ^(1/(-inf)) };
+            if (denominator == inf) { ˆ(0 %/ 1) };
+            if (denominator == -inf) { ˆ(1/(-inf)) };
             if (numerator.isNaN || denominator.isNaN) { ^0/0 };
 
-            // isRational:
-			if (this.numerator.isKindOf(Rational) || this.denominator.isKindOf(Rational)){
+            // at least one Rational
+			if (this.numerator.isKindOf(Rational) || this.denominator.isKindOf(Rational)) {
 				^(numerator.asRational / denominator.asRational)
 			};
 
-            // is rounded:
+            // Ints or rounded Floats
 			if (this.numerator.frac == 0 && this.denominator.frac == 0) {
+
+                // check for bad terms
 				if (denominator == 0) {
-					if (numerator == 0) {
-						"Rational has zero denominator".error;^0/0
-					}{
-						"Rational has zero denominator".error;^inf
-					}
-                };
+					if (numerator == 0) {"Rational has zero denominator".error;^0/0 } {
+                        "Rational has zero denominator".error;^inf } };
+
 				d = this.factor;
 				numerator = ((this.numerator/d).abs * d.sign).round;
 				denominator = (this.denominator/d).abs.round;
 				^Rational.fromReducedTerms(numerator,denominator);
 			} {
-                //
+                // other Number cases
 				^(this.numerator / this.denominator).asRational
 			}
 		} {
-            // is String:
+            // String
 			if (this.numerator.isKindOf(String)) {
 				^this.numerator.asRational
 			}
