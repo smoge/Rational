@@ -122,7 +122,7 @@ TestRational : UnitTest {
         );
 
         this.assert(
-            Rational(1,1).denominator_(inf) == Rational(1,1),
+            Rational(1,1).denominator_(inf) == Rational(0,1),
             format( "Rational(1,1).denominator(inf) == Rational(1,1) test passed.")
         );
 

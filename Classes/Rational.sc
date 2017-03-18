@@ -1,3 +1,7 @@
+/*
+TestRational.run
+*/
+
 Rational : Number {
 	var <numerator, <denominator;
 
@@ -189,8 +193,6 @@ Rational : Number {
         }
     }
 
-	isRational { ^false }
-
 	%/ { arg aNumber; ^Rational(this, aNumber) }
 
 	performBinaryOpOnRational { arg aSelector, rational, adverb;
@@ -229,7 +231,11 @@ Rational : Number {
 }
 
 + Object {
-	performBinaryOpOnRational { arg aSelector, thing, adverb;
+
+    isRational { ^false }
+
+    performBinaryOpOnRational { arg aSelector, thing, adverb;
 		^this.performBinaryOpOnSomething(aSelector, thing, adverb)
 	}
 }
+
