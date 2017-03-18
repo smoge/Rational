@@ -6,46 +6,39 @@ Rational : Number {
 	var <numerator, <denominator;
 
 	*new { arg numerator=1.0, denominator=1.0;
+		if(numerator.isKindOf(String)) { ^numerator.asRational };
 		^super.newCopyArgs(numerator, denominator).reduce
 	}
 
 	reduce {
 		var d;
-		^if (this.numerator.isKindOf(Number)) {
+		// check for bad terms
+		if (numerator == inf) { ^inf };
+		if (numerator == -inf) { ^-inf };
+		if (denominator == inf) { ˆ(0 %/ 1) };
+		if (denominator == -inf) { ˆ(1/(-inf)) };
+		if (numerator.isNaN || denominator.isNaN) { ^0/0 };
 
-            // check for bad terms
-            if (numerator == inf) { ^inf };
-            if (numerator == -inf) { ^-inf };
-            if (denominator == inf) { ˆ(0 %/ 1) };
-            if (denominator == -inf) { ˆ(1/(-inf)) };
-            if (numerator.isNaN || denominator.isNaN) { ^0/0 };
+		// at least one Rational
+		if (this.numerator.isKindOf(Rational) || this.denominator.isKindOf(Rational)) {
+			^(numerator.asRational / denominator.asRational)
+		};
 
-            // at least one Rational
-			if (this.numerator.isKindOf(Rational) || this.denominator.isKindOf(Rational)) {
-				^(numerator.asRational / denominator.asRational)
+		// Ints or rounded Floats
+		^if (this.numerator.frac == 0 && this.denominator.frac == 0) {
+
+			// check for bad terms
+			if (denominator == 0) {
+				"Rational has zero denominator".error
 			};
 
-            // Ints or rounded Floats
-			if (this.numerator.frac == 0 && this.denominator.frac == 0) {
-
-                // check for bad terms
-				if (denominator == 0) {
-					if (numerator == 0) {"Rational has zero denominator".error;^0/0 } {
-                        "Rational has zero denominator".error;^inf } };
-
-				d = this.factor;
-				numerator = ((this.numerator / d).abs * d.sign).round;
-				denominator = (this.denominator / d).abs.round;
-				^Rational.fromReducedTerms(numerator, denominator)
-			} {
-                // other Number cases
-				^(this.numerator / this.denominator).asRational
-			}
+			d = this.factor;
+			numerator = ((this.numerator / d).abs * d.sign).round;
+			denominator = (this.denominator / d).abs.round;
+			Rational.fromReducedTerms(numerator, denominator)
 		} {
-            // String
-			if (this.numerator.isKindOf(String)) {
-				^this.numerator.asRational
-			}
+			// other Number cases
+			(this.numerator / this.denominator).asRational
 		}
 	}
 
