@@ -152,7 +152,7 @@ Rational : Number {
 		}
 	}
 
-	simplify { arg maxDenominator=20, fasterBetter=false;
+	round { arg maxDenominator=20, fasterBetter=false;
 		^this.asFloat.asRational(maxDenominator,fasterBetter)
 	}
 
