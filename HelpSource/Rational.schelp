@@ -149,6 +149,20 @@ a = 20.collect({|i| f.(i)});
 a.plot;
 ::
 
+SUBSECTION:: Stern-Brocot numbers
+
+In number theory, the Stern–Brocot tree is an infinite complete binary tree in which the vertices correspond one-for-one to the positive rational numbers, whose values are ordered from the left to the right as in a search tree.
+
+code::
+// Stern-Brocot numbers
+f = {
+    arg n;
+    var a = [1, 1];
+    n.do { |i| a = a add: (a[i] + a[i+1]) add: a[i+1] };
+    (a.size - 1) collect: { |i| a[i] %/ a[i+1] }
+};
+Post << f.(25);
+::
 
 SUBSECTION:: Conversion between Rational and Float
 
@@ -197,7 +211,7 @@ s.waitForBoot{
             next_i=is.choose;
             if ( f <= 200  ) { next_i = max(next_i,next_i.reciprocal) };
             if ( f >= 2600 ) { next_i = min(next_i,next_i.reciprocal) };
-            
+
             " -> ".post;
             f = f * next_i.post.asFloat;
             " -> ".post;
@@ -212,12 +226,12 @@ s.waitForBoot{
             ).play;
 
             " Hz\n    dur: ".post;
-            (ds.choose.postln * p).asFloat.wait; 
-            
+            (ds.choose.postln * p).asFloat.wait;
+
         }
     };
-    
-    
+
+
     fork {
         loop {
             p = ps.choose;
@@ -227,7 +241,7 @@ s.waitForBoot{
     };
 
     s.sync;
-    
+
     { l.fork } ! 3
 }
 )
