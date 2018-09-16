@@ -4,7 +4,7 @@
 \version: "1.0.3",
 \schelp: "Rational",
 \url: "https://github.com/smoge/Rational",
-\dependencies: ["UnitTesting"],
+\dependencies: [],
 \copyright: "Bernardo Barros. 2017",
 \license: "GPLv3"
 )
