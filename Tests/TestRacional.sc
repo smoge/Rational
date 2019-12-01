@@ -1,4 +1,6 @@
 /*
+	If using SuperCollider <3.9, install UnitTesting quark.
+
 	UnitTest.gui
 	TestRational.run
 	TestRational().numTests_(100000).seed_(999.rand).isVerbose_(true).run;
