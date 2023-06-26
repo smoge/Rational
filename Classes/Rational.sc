@@ -33,8 +33,8 @@ Rational : Number {
 			};
 
 			d = this.factor;
-			numerator = ((this.numerator / d).abs * d.sign).round;
-			denominator = (this.denominator / d).abs.round;
+			numerator = ((this.numerator / d).abs * d.sign).round.asFloat;
+			denominator = (this.denominator / d).abs.round.asFloat;
 			Rational.fromReducedTerms(numerator, denominator)
 		} {
 			// other Number cases
@@ -88,11 +88,11 @@ Rational : Number {
 	reciprocal { ^this.class.new(this.denominator, this.numerator) }
 
 	printOn { arg stream;
-		stream <<  numerator << " %/ " << denominator
+		stream <<  numerator.asString.replace(".0","") << "%/" << denominator.asString.replace(".0","")
 	}
 
     storeOn { arg stream;
-		stream <<  numerator << " %/ " << denominator
+		stream <<  numerator.asString.replace(".0","") << "%/" << denominator.asString.replace(".0","")
 	}
 
     isNaN { ^false }
@@ -101,8 +101,8 @@ Rational : Number {
 
 	+ { arg aNumber, adverb;
 		^this.class.new(
-			(this.numerator * aNumber.denominator) + (this.denominator * aNumber.numerator),
-			this.denominator * aNumber.denominator)
+			(this.numerator * aNumber.denominator).asFloat + (this.denominator * aNumber.numerator).asFloat,
+			this.denominator * aNumber.denominator).asFloat
 	}
 
 	- { arg aNumber, adverb;
