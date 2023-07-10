@@ -101,8 +101,8 @@ Rational : Number {
 
 	+ { arg aNumber, adverb;
 		^this.class.new(
-			(this.numerator * aNumber.denominator).asFloat + (this.denominator * aNumber.numerator).asFloat,
-			this.denominator * aNumber.denominator).asFloat
+			(this.numerator * aNumber.denominator) + (this.denominator * aNumber.numerator),
+			this.denominator * aNumber.denominator)
 	}
 
 	- { arg aNumber, adverb;
