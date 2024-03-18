@@ -16,45 +16,45 @@ TestRational : UnitTest {
 
 	setUp { thisThread.randSeed = seed }
 
-/*	test_Zeros {
-		var array;
+	// test_Zeros {
+	// 	var array;
 
-		this.assert(
-			Rational(0,0).isNaN,
-			format( "Zeros with Rational(0,0).isNaN test passed.")
-		);
-		this.assert(
-			Rational(rrand(1,10),rrand(1,10)) != Rational(1,0),
-			format( "Zeros with Rational(rrand(1,10),rrand(1,10))!=Rational(1,0) test passed.")
-		);
-		this.assert(
-			Rational(rrand(1,10),rrand(1,10)) != Rational(0,0),
-			format( "Zeros with Rational(rrand(1,10),rrand(1,10))!=Rational(0,0) test passed.")
-		);
-		this.assertEquals(
-			Rational(1,0),
-			inf,
-			format( "Zeros test with Rational(1,0)==inf passed.")
-		);
-		this.assertEquals(
-			Rational(9999,0),
-			inf,
-			format( "Zeros test with Rational(9999,0)==inf passed.")
-		);
-		100.do {
-			this.assertEquals(
-				Rational(9999.rand,0),
-				Rational(9999.rand,0),
-				format( "Zeros test with Rational(9999.rand,0)==Rational(9999.rand,0) passed."),
-				isVerbose
-			)
-		};
-		this.assertEquals(
-			Rational(0,1),
-			Rational(0,9999),
-			format( "Zeros test with Rational(0,1)==Rational(0,9999) passed.")
-		);
-	}*/
+	// 	this.assert(
+	// 		Rational(0,0).isNaN,
+	// 		format( "Zeros with Rational(0,0).isNaN test passed.")
+	// 	);
+	// 	// this.assert(
+	// 	// 	Rational(rrand(1,10),rrand(1,10)) != Rational(1,0),
+	// 	// 	format( "Zeros with Rational(rrand(1,10),rrand(1,10))!=Rational(1,0) test passed.")
+	// 	// );
+	// 	this.assert(
+	// 		Rational(rrand(1,10),rrand(1,10)) != Rational(0,0),
+	// 		format( "Zeros with Rational(rrand(1,10),rrand(1,10))!=Rational(0,0) test passed.")
+	// 	);
+	// 	this.assertEquals(
+	// 		Rational(1,0),
+	// 		inf,
+	// 		format( "Zeros test with Rational(1,0)==inf passed.")
+	// 	);
+	// 	this.assertEquals(
+	// 		Rational(9999,0),
+	// 		inf,
+	// 		format( "Zeros test with Rational(9999,0)==inf passed.")
+	// 	);
+	// 	100.do {
+	// 		this.assertEquals(
+	// 			Rational(9999.rand,0),
+	// 			Rational(9999.rand,0),
+	// 			format( "Zeros test with Rational(9999.rand,0)==Rational(9999.rand,0) passed."),
+	// 			isVerbose
+	// 		)
+	// 	};
+	// 	this.assertEquals(
+	// 		Rational(0,1),
+	// 		Rational(0,9999),
+	// 		format( "Zeros test with Rational(0,1)==Rational(0,9999) passed.")
+	// 	);
+	// }
 
 	test_Setters {
 
@@ -71,73 +71,73 @@ TestRational : UnitTest {
 
 	}
 
-    test_inf_nan {
+	test_inf_nan {
 
-        this.assert(
-            Rational(1,1) + inf == inf,
-            format( "Rational(1,1) + inf == inf test passed.")
-        );
+		this.assert(
+			Rational(1,1) + inf == inf,
+			format( "Rational(1,1) + inf == inf test passed.")
+		);
 
-        this.assert(
-            Rational(inf,1) == inf,
-            format( "Rational(inf,1) == inf test passed.")
-        );
+		this.assert(
+			Rational(inf,1) == inf,
+			format( "Rational(inf,1) == inf test passed.")
+		);
 
-        this.assert(
-            Rational(-inf,1) == -inf,
-            format( "Rational(-inf,1) == -inf test passed.")
-        );
+		this.assert(
+			Rational(-inf,1) == -inf,
+			format( "Rational(-inf,1) == -inf test passed.")
+		);
 
-        this.assert(
-            Rational(inf,rrand(-1000,1000)) == inf,
-            format( "Rational(inf,rrand(-1000,1000)) == inf test passed.")
-        );
+		this.assert(
+			Rational(inf,rrand(-1000,1000)) == inf,
+			format( "Rational(inf,rrand(-1000,1000)) == inf test passed.")
+		);
 
-        this.assert(
-            Rational(-inf,rrand(-1000,1000)) == -inf,
-            format( "Rational(-inf,rrand(-1000,1000)) == -inf test passed.")
-        );
+		this.assert(
+			Rational(-inf,rrand(-1000,1000)) == -inf,
+			format( "Rational(-inf,rrand(-1000,1000)) == -inf test passed.")
+		);
 
-        this.assert(
-            Rational(0,inf) == Rational(0,1),
-            format( "Rational(0,inf) == Rational(0,1) test passed.")
-        );
+		this.assert(
+			Rational(0,inf) == Rational(0,1),
+			format( "Rational(0,inf) == Rational(0,1) test passed.")
+		);
 
-        this.assert(
-            Rational(rrand(-1000,1000),inf) == Rational(0,1),
-            format( "Rational(rrand(-1000,1000),inf) == Rational(0,1) test passed.")
-        );
+		this.assert(
+			Rational(rrand(-1000,1000),inf) == Rational(0,1),
+			format( "Rational(rrand(-1000,1000),inf) == Rational(0,1) test passed.")
+		);
 
-        this.assert(
-            Rational(1,0/0).isNaN,
-            format( "Rational(1,0/0).isNaN test passed.")
-        );
+		this.assert(
+			Rational(1,0/0).isNaN,
+			format( "Rational(1,0/0).isNaN test passed.")
+		);
 
-        this.assert(
-            Rational(0/0,1).isNaN,
-            format( "Rational(0/0,1).isNaN test passed.")
-        );
+		this.assert(
+			Rational(0/0,1).isNaN,
+			format( "Rational(0/0,1).isNaN test passed.")
+		);
 
-        this.assert(
-            Rational(1,1).numerator_(inf) === inf,
-            format( "Rational(1,1).numerator_(inf) === inf test passed.")
-        );
+		this.assert(
+			Rational(1,1).numerator_(inf) === inf,
+			format( "Rational(1,1).numerator_(inf) === inf test passed.")
+		);
 
-        this.assert(
-            Rational(1,1).denominator_(inf) == Rational(0,1),
-            format( "Rational(1,1).denominator(inf) == Rational(1,1) test passed.")
-        );
+		this.assert(
+			Rational(1,1).denominator_(inf) == Rational(0,1),
+			format( "Rational(1,1).denominator(inf) == Rational(1,1) test passed.")
+		);
 
-        this.assert(
-            Rational(1,1).numerator_(0/0).isNaN,
-            format( "Rational(1,1).numerator_(0/0).isNaN test passed.")
-        );
+		this.assert(
+			Rational(1,1).numerator_(0/0).isNaN,
+			format( "Rational(1,1).numerator_(0/0).isNaN test passed.")
+		);
 
-        this.assert(
-            Rational(1,1).denominator_(0/0).isNaN,
-            format( "Rational(1,1).denominator_(0/0).isNaN test passed.")
-        );
-    }
+		this.assert(
+			Rational(1,1).denominator_(0/0).isNaN,
+			format( "Rational(1,1).denominator_(0/0).isNaN test passed.")
+		);
+	}
 
 	test_BigNumbers {
 
@@ -313,6 +313,7 @@ TestRational : UnitTest {
 			);
 			this.assertEquals(
 				(-1) * rat,
+
 				Rational(x * (-1), y),
 				format( "Additive Inverse test 2 with % passed.", rat),
 				isVerbose
