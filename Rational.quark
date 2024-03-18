@@ -1,7 +1,7 @@
 (
 \name: "Rational",
 \summary: "Rational Numbers extension to SuperCollider",
-\version: "1.0.3",
+\version: "1.0.4",
 \schelp: "Rational",
 \url: "https://github.com/smoge/Rational",
 \dependencies: [],
