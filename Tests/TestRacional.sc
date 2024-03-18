@@ -3,58 +3,18 @@
 
 	UnitTest.gui
 	TestRational.run
-	TestRational().numTests_(100000).seed_(999.rand).isVerbose_(true).run;
+
 */
 
 TestRational : UnitTest {
 
-	var <>minIntVal= -1000, <>maxIntVal=1000;
-	var <>minFloatVal= -1000.1, <>maxFloatVal=1000.1;
-	var <>numTests = 100;
-	var <>seed = 123;
-	var <>isVerbose = false;
+    var <>minIntVal= -214622 , <>maxIntVal=214622;
+    var <>minFloatVal= -10738241.0, <>maxFloatVal=10738241.0;
+	var <>numTests = 1000;
+	var <>seed = 111;
+	var <>isVerbose = true;
 
 	setUp { thisThread.randSeed = seed }
-
-	// test_Zeros {
-	// 	var array;
-
-	// 	this.assert(
-	// 		Rational(0,0).isNaN,
-	// 		format( "Zeros with Rational(0,0).isNaN test passed.")
-	// 	);
-	// 	// this.assert(
-	// 	// 	Rational(rrand(1,10),rrand(1,10)) != Rational(1,0),
-	// 	// 	format( "Zeros with Rational(rrand(1,10),rrand(1,10))!=Rational(1,0) test passed.")
-	// 	// );
-	// 	this.assert(
-	// 		Rational(rrand(1,10),rrand(1,10)) != Rational(0,0),
-	// 		format( "Zeros with Rational(rrand(1,10),rrand(1,10))!=Rational(0,0) test passed.")
-	// 	);
-	// 	this.assertEquals(
-	// 		Rational(1,0),
-	// 		inf,
-	// 		format( "Zeros test with Rational(1,0)==inf passed.")
-	// 	);
-	// 	this.assertEquals(
-	// 		Rational(9999,0),
-	// 		inf,
-	// 		format( "Zeros test with Rational(9999,0)==inf passed.")
-	// 	);
-	// 	100.do {
-	// 		this.assertEquals(
-	// 			Rational(9999.rand,0),
-	// 			Rational(9999.rand,0),
-	// 			format( "Zeros test with Rational(9999.rand,0)==Rational(9999.rand,0) passed."),
-	// 			isVerbose
-	// 		)
-	// 	};
-	// 	this.assertEquals(
-	// 		Rational(0,1),
-	// 		Rational(0,9999),
-	// 		format( "Zeros test with Rational(0,1)==Rational(0,9999) passed.")
-	// 	);
-	// }
 
 	test_Setters {
 
