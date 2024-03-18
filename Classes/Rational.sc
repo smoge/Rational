@@ -165,6 +165,11 @@ Rational : Number {
         }
     }
 
+
+    numeratorIsPowerOfTwo { ^this.numerator.asInteger.isPowerOfTwo }
+
+    denominatorIsPowerOfTwo { ^this.denominator.asInteger.isPowerOfTwo }
+
     simplify { arg maxDenominator=20, fasterBetter=false;
         ^this.asFloat.asRational(maxDenominator,fasterBetter)
     }
