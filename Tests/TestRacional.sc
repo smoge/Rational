@@ -8,8 +8,8 @@
 
 TestRational : UnitTest {
 
-    var <>minIntVal= -214622 , <>maxIntVal=214622;
-    var <>minFloatVal= -10738241.0, <>maxFloatVal=10738241.0;
+	var <>minIntVal= -214622 , <>maxIntVal=214622;
+	var <>minFloatVal= -10738241.0, <>maxFloatVal=10738241.0;
 	var <>numTests = 1000;
 	var <>seed = 111;
 	var <>isVerbose = true;
