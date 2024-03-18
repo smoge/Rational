@@ -8,7 +8,7 @@ Rational : Number {
     *new { arg numerator=1.0, denominator=1.0;
         if(numerator.isKindOf(String)) { ^numerator.asRational };
         if (numerator.isNaN || denominator.isNaN) { ^0/0 };
-        if (denominator == 0) { "Rational has zero denominator".error; ^inf };
+        if (denominator == 0) { "Rational has zero denominator".error };
 
         if (numerator == inf) { ^inf };
         if (numerator == -inf) { ^-inf };
