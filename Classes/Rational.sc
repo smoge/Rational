@@ -28,7 +28,7 @@ Rational : Number {
     reduce {
         var d;
         if (numerator.frac == 0 and:  denominator.frac == 0 ) {
-            d = this.gcd(numerator, denominator) ;
+            d = gcd(numerator, denominator) ;
             numerator = numerator / d;
             denominator = denominator / d;
             if (denominator < 0) {
