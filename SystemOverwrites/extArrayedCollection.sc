@@ -15,9 +15,11 @@
 			if (elem.isKindOf(Env)) {
 				elem.asMultichannelSignal.flop
 			} {
-				elem
+				if (elem.isKindOf(Rational))
+				{ elem.asFloat }
+				{ elem }
 			};
-            if (elem.isKindOf(Rational)) { elem.asFloat } { elem };
+
 		};
 		plotter.setValue(
 			array,
