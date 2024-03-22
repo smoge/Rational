@@ -2,7 +2,7 @@
     TestRational.run
 */
 
-Rational : SimpleNumber {
+Rational : Number {
     var <numerator, <denominator;
 
     *new { arg numerator=1.0, denominator=1.0;
@@ -28,7 +28,7 @@ Rational : SimpleNumber {
     reduce {
         var d;
         if (numerator.frac == 0 and:  denominator.frac == 0 ) {
-            d = this.gcd(numerator, denominator);
+            d = this.gcd(numerator, denominator).asFloat;
             numerator = numerator / d;
             denominator = denominator / d;
             if (denominator < 0) {
