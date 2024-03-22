@@ -2,18 +2,18 @@
     TestRational.run
 */
 
-Rational : Number {
+Rational : SimpleNumber {
     var <numerator, <denominator;
 
     *new { arg numerator=1.0, denominator=1.0;
-        if(numerator.isKindOf(String)) { ^numerator.asRational };
+        if (numerator.isKindOf(String)) { ^numerator.asRational };
         if (numerator.isNaN || denominator.isNaN) { ^0/0 };
         if (denominator == 0) { "Rational has zero denominator".error };
 
-        if (numerator == inf) { ^inf };
-        if (numerator == -inf) { ^-inf };
-        if (denominator == inf) { ^Rational(0, 1) };
-        if (denominator == -inf) { ^0 /*^1 / -inf*/ };
+        if (numerator == inf)    { ^inf             };
+        if (numerator == -inf)   { ^-inf            };
+        if (denominator == inf)  { ^Rational(0, 1)  };
+        if (denominator == -inf) { ^Rational(0, 1)  };
 
         if (numerator.isKindOf(Rational) or:  denominator.isKindOf(Rational) ) {
             numerator = numerator.asRational;
