@@ -8,10 +8,10 @@
 
 TestRational : UnitTest {
 
-	var <>minIntVal= -214622 , <>maxIntVal=214622;
-	var <>minFloatVal= -110738241.0, <>maxFloatVal=110738241.0;
-	var <>numTests = 100;
-	var <>seed = 112;
+	var <>minIntVal= -114622 , <>maxIntVal=114622;
+	var <>minFloatVal= -100738241.0, <>maxFloatVal=100738241.0;
+	var <>numTests = 500;
+	var <>seed = 147;
 	var <>isVerbose = true;
 
 	setUp { thisThread.randSeed = seed }
@@ -578,8 +578,3 @@ TestRational : UnitTest {
 	}
 }
 
-/*
-	UnitTest.gui
-	TestRational.run
-	TestRational().numTests_(100).seed_(999.rand).isVerbose_(true).run;
-*/
