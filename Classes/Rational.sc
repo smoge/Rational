@@ -35,8 +35,7 @@ Rational : Number {
                 numerator = (-1) * numerator;
                 denominator = (-1) * denominator;
             }
-        };
-        ^this
+        }
     }
 
     gcd { arg a, b; if (b == 0) { ^a } { ^this.gcd(b, a % b) } }
