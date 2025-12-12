@@ -153,8 +153,8 @@ Patterns
 
 (
 Pbind(
-    \degree, Pseq([0, 2, 4, 5], inf),
-    \dur,    Pseq([1%/4, 1%/8, 1%/8, 1%/2], inf)
+	\degree, Pseq([0, 2, 4, 5], inf),
+	\dur,    Pseq([1%/4, 1%/8, 1%/8, 1%/2], inf)
 ).play;
 )
 
@@ -163,8 +163,8 @@ Pbind(
 var beats = 4;
 
 Ppar([
-    Pbind(\degree, 0, \dur, beats %/ 3),
-    Pbind(\degree, 4, \dur, beats %/ 5)
+	Pbind(\degree, 0, \dur, beats %/ 3),
+	Pbind(\degree, 4, \dur, beats %/ 5)
 ]).play;
 )
 
@@ -199,7 +199,78 @@ var pattern = [2%/8, 2%/8, 3%/8];
 pattern.sum;
 
 Pbind(
-    \degree, Pseq([0, 2, 4], inf),
-    \dur,    Pseq(pattern, inf)
+	\degree, Pseq([0, 2, 4], inf),
+	\dur,    Pseq(pattern, inf)
 ).play;
 )
+
+
+///////////////////////////////////////////////////
+
+s.waitForBoot {
+
+	var pitch_ratios = (
+		unison:   1 %/ 1,
+		major2:   9 %/ 8,
+		minor3:   6 %/ 5,
+		major3:   5 %/ 4,
+		fourth:   4 %/ 3,
+		fifth:    3 %/ 2,
+		major6:   5 %/ 3,
+		minor7:   9 %/ 5,
+		octave:   2 %/ 1
+	);
+
+	var ratios = pitch_ratios.values;
+	var root = 415 / 2;
+	var ratioToFreq = { |r| root * r.asFloat };
+
+	SynthDef(\ping, { |out=0, freq=440, amp=0.1, pan=0|
+		var env, sig, mod, body;
+
+		env = EnvGen.kr(
+			Env.perc(0.004, 0.35, curve: -5),
+			doneAction: 2
+		);
+
+		mod = SinOsc.kr(5, Rand(0, 2pi)).range(0.997, 1.003);
+
+		sig = SinOsc.ar(freq * mod);
+		body = SinOsc.ar(freq * 2.01, 0, 0.2);
+
+		sig = sig + body;
+		sig = LPF.ar(sig, freq * 3.5);
+		sig = sig * env * amp;
+
+		sig = Splay.ar(sig, 0.15);
+		Out.ar(out, Balance2.ar(sig[0], sig[1], pan));
+	}).add;
+
+
+	~voice_one = Pbind(
+		\instrument, \ping,
+		\dur, 1 %/ 5,
+		\freq, Pseq([
+			ratioToFreq.(pitch_ratios.fifth),
+			Pfunc { ratioToFreq.(ratios.choose) },
+			ratioToFreq.(pitch_ratios.octave)
+		], inf)
+		* Prand([0.5, 1, 2], inf),
+		\amp, Pwhite(0.03, 0.08),
+		\pan, Pwhite(0.4, 0.8)
+	);
+
+	~voice_two = Pbind(
+		\instrument, \ping,
+		\dur, 9 %/ 13,
+		\freq, Pfunc { ratioToFreq.(ratios.choose) },
+		\amp, 0.08,
+		\pan, Pwhite(-0.8, -0.4)
+	);
+
+
+	~piece = Ppar([
+		~voice_one,
+		~voice_two
+	]).play;
+};
