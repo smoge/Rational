@@ -1,17 +1,6 @@
 /*
 Rational Numbers for SuperCollider
 
-Instead of representing values like 1/3 or 3/8 as floating-point numbers,
-Rational keeps them as numerator/denominator pairs and only converts to
-floats when necessary.
-
-This is useful for:
-
-- rhythmic notation
-- polyrhythms without drift
-- pitch ratios
-- symbolic time calculations
-
 Installation:
 Quarks.install("https://github.com/smoge/Rational")
 
@@ -19,12 +8,6 @@ Test:
 TestRational.run
 */
 
-
-/*
-FUNDAMENTALS
-
-All rationals are automatically reduced to lowest terms.
-*/
 
 // Constructor
 a = Rational(3, 4);        // -> 3%/4
@@ -46,6 +29,7 @@ d = "3/4".asRational;      // -> 3%/4
 // Equality uses reduced form
 a == c;                    // true
 
+[1%/2, 2%/3, 3%/4, 4%/5].plot;
 
 /*
 Arithmetic
@@ -207,22 +191,17 @@ Pbind(
 
 ///////////////////////////////////////////////////
 
+(
 s.waitForBoot {
 
-	var pitch_ratios = (
-		unison:   1 %/ 1,
-		major2:   9 %/ 8,
-		minor3:   6 %/ 5,
-		major3:   5 %/ 4,
-		fourth:   4 %/ 3,
-		fifth:    3 %/ 2,
-		major6:   5 %/ 3,
-		minor7:   9 %/ 5,
-		octave:   2 %/ 1
+	var pitchRatios = (
+		unison: 1%/1, major2: 9%/8, minor3: 6%/5, major3: 5%/4,
+		fourth: 4%/3, fifth: 3%/2, major6: 5%/3,
+		minor7: 9%/5, octave: 2%/1
 	);
 
-	var ratios = pitch_ratios.values;
-	var root = 415 / 2;
+	var ratios = pitchRatios.values;
+	var root = 207.5;
 	var ratioToFreq = { |r| root * r.asFloat };
 
 	SynthDef(\ping, { |out=0, freq=440, amp=0.1, pan=0|
@@ -234,10 +213,8 @@ s.waitForBoot {
 		);
 
 		mod = SinOsc.kr(5, Rand(0, 2pi)).range(0.997, 1.003);
-
 		sig = SinOsc.ar(freq * mod);
 		body = SinOsc.ar(freq * 2.01, 0, 0.2);
-
 		sig = sig + body;
 		sig = LPF.ar(sig, freq * 3.5);
 		sig = sig * env * amp;
@@ -246,31 +223,55 @@ s.waitForBoot {
 		Out.ar(out, Balance2.ar(sig[0], sig[1], pan));
 	}).add;
 
+	SynthDef(\bell, { |out=0, freq=440, amp=0.1, pan=0, decay=3|
+		var env, exc, sig, modes;
 
-	~voice_one = Pbind(
+		env = EnvGen.kr(
+			Env.perc(0.01, decay, curve: -6),
+			doneAction: 2
+		);
+
+		exc = PinkNoise.ar(0.12)
+		* EnvGen.kr(Env.perc(0.002, 0.04));
+
+		modes = [1, 2.02, 3.01, 4.12, 5.3];
+
+		sig = Mix.fill(modes.size, { |i|
+			Ringz.ar(
+				exc,
+				freq * modes[i],
+				decay * (0.9 - (i * 0.12))
+			)
+		});
+
+		sig = LPF.ar(sig, 8000);
+		sig = sig * env * amp;
+
+		Out.ar(out, Pan2.ar(sig, pan));
+	}).add;
+
+	s.sync;
+
+	~voiceOne = Pbind(
 		\instrument, \ping,
-		\dur, 1 %/ 5,
+		\dur, Prand((1..13).collect { |n| n %/ 51 }, inf),
 		\freq, Pseq([
-			ratioToFreq.(pitch_ratios.fifth),
+			ratioToFreq.(pitchRatios.fifth),
 			Pfunc { ratioToFreq.(ratios.choose) },
-			ratioToFreq.(pitch_ratios.octave)
-		], inf)
-		* Prand([0.5, 1, 2], inf),
-		\amp, Pwhite(0.03, 0.08),
-		\pan, Pwhite(0.4, 0.8)
+			ratioToFreq.(pitchRatios.octave)
+		], inf) * Prand([0.5, 1, 2], inf),
+		\amp, Pwhite(0.01, 0.1),
+		\pan, Pwhite(0.4, 0.7)
 	);
 
-	~voice_two = Pbind(
-		\instrument, \ping,
-		\dur, 9 %/ 13,
+	~voiceTwo = Pbind(
+		\instrument, \bell,
+		\dur, Pfunc { rrand(5, 11) %/ 37 },
 		\freq, Pfunc { ratioToFreq.(ratios.choose) },
-		\amp, 0.08,
-		\pan, Pwhite(-0.8, -0.4)
+		\amp, Pwhite(0.01, 0.07),
+		\pan, Pwhite(0.1, 0.9)
 	);
 
-
-	~piece = Ppar([
-		~voice_one,
-		~voice_two
-	]).play;
+	~thang = Ppar([~voiceOne, ~voiceTwo]).play;
 };
+)
