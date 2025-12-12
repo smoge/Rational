@@ -1,36 +1,59 @@
 + ArrayedCollection {
-	plot { |name, bounds, discrete=false, numChannels, minval, maxval, separately = true|
-		var array, plotter;
-		array = this.as(Array);
-
-		if(array.maxDepth > 3) {
-			"Cannot currently plot an array with more than 3 dimensions".warn;
-			^nil
-		};
-		plotter = Plotter(name, bounds);
-		if(discrete) { plotter.plotMode = \points };
-
-		numChannels !? { array = array.unlace(numChannels) };
-		array = array.collect {|elem|
-			if (elem.isKindOf(Env)) {
-				elem.asMultichannelSignal.flop
-			} {
-				if (elem.isKindOf(Rational))
-				{ elem.asFloat }
-				{ elem }
-			};
-
-		};
-		plotter.setValue(
-			array,
-			findSpecs: true,
-			separately: separately,
-			refresh: true,
-			minval: minval,
-			maxval: maxval
-		);
-
-		^plotter
-	}
+    plot { |name, bounds, discrete = false, numChannels, minval, maxval, separately = true|
+        var array, plotter;
+        array = this.as(Array);
+        if (array.maxDepth > 3) {
+            "Cannot currently plot an array with more than 3 dimensions".warn;
+            ^nil
+        };
+        plotter = Plotter(name, bounds);
+        if (discrete) { plotter.plotMode = \points };
+        numChannels !? { array = array.unlace(numChannels) };
+        array = array.collect { |elem|
+            case
+            { elem.isKindOf(Env) } { elem.asMultichannelSignal.flop }
+            { elem.isKindOf(Rational) } { elem.asFloat }
+            { elem }
+        };
+        plotter.setValue(array, findSpecs: true, separately: separately, refresh: true, minval: minval, maxval: maxval);
+        ^plotter
+    }
 }
 
++ ListPattern {
+    copy { ^super.copy.list_(list.copy) }
+    storeArgs { ^[list, repeats] }
+}
+
++ Pseq {
+    embedInStream { |inval|
+        var item, offsetValue;
+        offsetValue = offset.value(inval);
+        if (inval.eventAt('reverse') == true) {
+            repeats.value(inval).do { |j|
+                list.size.reverseDo { |i|
+                    item = list.wrapAt(i + offsetValue);
+                    inval = if (item.isKindOf(Rational)) {
+                        item.asFloat.embedInStream(inval)
+                    } {
+                        item.embedInStream(inval)
+                    };
+                };
+            };
+        } {
+            repeats.value(inval).do { |j|
+                list.size.do { |i|
+                    item = list.wrapAt(i + offsetValue);
+                    inval = if (item.isKindOf(Rational)) {
+                        item.asFloat.embedInStream(inval)
+                    } {
+                        item.embedInStream(inval)
+                    };
+                };
+            };
+        };
+        ^inval
+    }
+
+    storeArgs { ^[list, repeats, offset] }
+}

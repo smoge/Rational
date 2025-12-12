@@ -1,257 +1,268 @@
-/*
-    TestRational.run
-*/
-
 Rational : Number {
-    var <numerator, <denominator;
+	var <numerator, <denominator;
 
-    *new { arg numerator=1.0, denominator=1.0;
-        if (numerator.isKindOf(String)) { ^numerator.asRational };
-        if (numerator.isNaN || denominator.isNaN) { ^0/0 };
-        if (denominator == 0) { "Rational has zero denominator".error };
+	*new { arg numerator=1.0, denominator=1.0;
+		if (numerator.isKindOf(String)) { ^numerator.asRational };
+		if (numerator.isNaN || denominator.isNaN) { ^0/0 };
+		if (denominator == 0) { "Rational has zero denominator".warn; ^nil };
+		if (numerator == inf) { ^inf };
+		if (numerator == -inf) { ^-inf };
+		if (denominator == inf) { ^Rational(0, 1) };
+		if (denominator == -inf) { ^Rational(0, 1) };
+		if (numerator.isKindOf(Rational) or: denominator.isKindOf(Rational)) {
+			numerator = numerator.asRational;
+			denominator = denominator.asRational;
+			^(numerator / denominator)
+		};
+		if (numerator.frac != 0 or: denominator.frac != 0) {
+			^(numerator/denominator).asRational
+		};
+		^super.newCopyArgs(numerator, denominator).reduce
+	}
 
-        if (numerator == inf)    { ^inf             };
-        if (numerator == -inf)   { ^-inf            };
-        if (denominator == inf)  { ^Rational(0, 1)  };
-        if (denominator == -inf) { ^Rational(0, 1)  };
+	*fromReducedTerms { arg numerator=1.0, denominator=1.0;
+		if (denominator == 0) { "Rational has zero denominator".error; ^nil };
+		if (denominator < 0) {
+			numerator = numerator.neg;
+			denominator = denominator.neg;
+		};
+		^super.newCopyArgs(numerator, denominator);
+	}
 
-        if (numerator.isKindOf(Rational) or:  denominator.isKindOf(Rational) ) {
-            numerator = numerator.asRational;
-            denominator = denominator.asRational;
-            ^(numerator / denominator)
-        };
+	*newFrom { arg that; ^that.asRational }
 
-        if(numerator.frac != 0 or: denominator.frac != 0) { ^(numerator/denominator).asRational };
-        ^super.newCopyArgs(numerator, denominator).reduce
-    }
+	*gcd { arg a, b;
+		a = a.abs;
+		b = b.abs;
+		while { b != 0 } { b = a mod: (a = b) };
+		^a
+	}
 
-    reduce {
-        var d;
-        if (numerator.frac == 0 and:  denominator.frac == 0 ) {
-            d = this.gcd(numerator, denominator).asFloat;
-            numerator = numerator / d;
-            denominator = denominator / d;
-            if (denominator < 0) {
-                numerator = (-1) * numerator;
-                denominator = (-1) * denominator;
-            }
-        }
-    }
+	reduce {
+		var d;
+		if (numerator.frac == 0 and: denominator.frac == 0) {
+			d = this.class.gcd(numerator, denominator);
+			numerator = numerator div: d;
+			denominator = denominator div: d;
+			if (denominator < 0) {
+				numerator = numerator.neg;
+				denominator = denominator.neg;
+			}
+		};
+		^this
+	}
 
-    gcd { arg a, b; if (b == 0) { ^a } { ^this.gcd(b, a % b) } }
+	factor {
+		var d = this.class.gcd(numerator, denominator).abs;
+		if (denominator < 0) { d = d.neg };
+		if (numerator < 0) { d = d.neg };
+		^d.asFloat
+	}
 
-    *fromReducedTerms { arg numerator=1.0, denominator=1.0;
-        ^super.newCopyArgs(numerator, denominator);
-    }
+	sign {
+		if (numerator == 0) { ^0 };
+		if (numerator > 0) { ^1 };
+		if (numerator < 0) { ^(-1) };
+	}
 
-    *newFrom { arg that; ^that.asRational }
+	numerator_ { arg newNumerator=1.0;
+		numerator = newNumerator;
+		if (numerator.isNaN || denominator.isNaN) { ^0/0 };
+		if (numerator.frac != 0) { ^(numerator/denominator).asRational };
+		if (numerator == inf) { ^inf };
+		if (numerator == -inf) { ^-inf };
+		^this.reduce
+	}
 
+	denominator_ { arg newDenominator=1.0;
+		denominator = newDenominator;
+		if (denominator.isNaN) { ^0/0 };
+		if (denominator == 0) { "Rational has zero denominator".error; ^nil };
+		if (denominator.frac != 0) { ^(numerator/denominator).asRational };
+		if (denominator == inf) { ^this.class.new(0, 1) };
+		if (denominator == -inf) { ^0 };
+		^this.reduce
+	}
 
-    factor {
-        var d;
-        d = this.gcd(this.numerator, this.denominator).abs;
-        if (denominator < 0) { d = d.neg };
-        if (numerator   < 0) { d = d.neg };
-        ^d.asFloat
-    }
+	isRational { ^true }
 
-    sign {
-        if (this.numerator == 0 ) { ^0    };
-        if (this.numerator >  0 ) { ^1    };
-        if (this.numerator <  0 ) { ^(-1) };
-    }
+	isNaN { ^numerator.isNaN or: { denominator.isNaN }}
 
-    numerator_ { arg newNumerator=1.0; numerator = newNumerator;
+	isNegative { ^numerator.isNegative }
+	isPositive { ^numerator.isPositive }
+	isNumeratorPowerOfTwo { ^numerator.asInteger.isPowerOfTwo }
+	isDenominatorPowerOfTwo { ^denominator.asInteger.isPowerOfTwo }
 
-        if (numerator.isNaN || denominator.isNaN) { ^0/0 };
-        if(numerator.frac != 0) { ^(numerator/denominator).asRational };
-        if (numerator == inf) { ^inf };
-        if (numerator == -inf) { ^-inf };
+	asRational { ^this }
+	asFloat { ^(numerator / denominator).asFloat }
+	asInteger { ^(numerator / denominator).asInteger }
+	asInt { ^this.asInteger }
 
-        ^this.reduce }
+	%/ { arg aNumber; ^this.class.new(this, aNumber) }
 
-    denominator_ { arg newDenominator=1.0; denominator = newDenominator;
+	+ { arg aNumber, adverb;
+		var g, n, d;
+		aNumber = aNumber.asRational;
+		g = this.class.gcd(this.denominator, aNumber.denominator);
+		n = (this.numerator * (aNumber.denominator div: g)) +
+		(aNumber.numerator * (this.denominator div: g));
+		d = (this.denominator div: g) * aNumber.denominator;
+		^this.class.new(n, d)
+	}
 
-        if (denominator.isNaN) { ^0/0 };
-        if (denominator == 0) { "Rational has zero denominator".error; ^nil };
-        if (denominator.frac != 0) { ^(numerator/denominator).asRational };
-        if (denominator == inf) { ^this.class.new(0, 1) };
-        if (denominator == -inf) { ^1 / -inf };
+	- { arg aNumber, adverb;
+		var g, n, d;
+		aNumber = aNumber.asRational;
+		g = this.class.gcd(this.denominator, aNumber.denominator);
+		n = (this.numerator * (aNumber.denominator div: g)) -
+		(aNumber.numerator * (this.denominator div: g));
+		d = (this.denominator div: g) * aNumber.denominator;
+		^this.class.new(n, d)
+	}
 
-        ^this.reduce }
+	* { arg aNumber, adverb;
+		var g1, g2, n, d;
+		aNumber = aNumber.asRational;
+		g1 = this.class.gcd(this.numerator.abs, aNumber.denominator.abs);
+		g2 = this.class.gcd(aNumber.numerator.abs, this.denominator.abs);
+		n = (this.numerator div: g1) * (aNumber.numerator div: g2);
+		d = (this.denominator div: g2) * (aNumber.denominator div: g1);
+		^this.class.new(n, d)
+	}
 
-    isNumeratorPowerOfTwo { ^this.numerator.asInteger.isPowerOfTwo }
+	/ { arg aNumber, adverb;
+		var g1, g2, n, d;
+		aNumber = aNumber.asRational;
+		if (aNumber.numerator == 0) { "Division by zero".error; ^nil };
+		g1 = this.class.gcd(this.numerator.abs, aNumber.numerator.abs);
+		g2 = this.class.gcd(this.denominator.abs, aNumber.denominator.abs);
+		n = (this.numerator div: g1) * (aNumber.denominator div: g2);
+		d = (this.denominator div: g2) * (aNumber.numerator div: g1);
+		^this.class.new(n, d)
+	}
 
-    isDenominatorPowerOfTwo { ^this.denominator.asInteger.isPowerOfTwo }
+	== { arg aNumber, adverb;
+		aNumber = aNumber.asRational;
+		^(this.numerator == aNumber.numerator) and: { this.denominator == aNumber.denominator }
+	}
 
-    performBinaryOpOnSimpleNumber { arg aSelector, aNumber, adverb;
-        ^aNumber.asRational.perform(aSelector, this, adverb)
-    }
+	!= { arg aNumber, adverb;
+		aNumber = aNumber.asRational;
+		^(this.numerator != aNumber.numerator) or: { this.denominator != aNumber.denominator }
+	}
 
-    isRational { ^true }
+	compareValue { arg aNumber;
+		var g, lhs, rhs;
+		aNumber = aNumber.asRational;
+		g = this.class.gcd(this.denominator, aNumber.denominator);
+		lhs = this.numerator * (aNumber.denominator div: g);
+		rhs = aNumber.numerator * (this.denominator div: g);
+		^(lhs - rhs).sign
+	}
 
-    %/ { arg aNumber; ^this.class.new(this, aNumber) }
+	< { arg aNumber; ^this.compareValue(aNumber) < 0 }
+	> { arg aNumber; ^this.compareValue(aNumber) > 0 }
+	<= { arg aNumber; ^this.compareValue(aNumber) <= 0 }
+	>= { arg aNumber; ^this.compareValue(aNumber) >= 0 }
 
-    asRational { ^this }
+	reciprocal {
+		if (numerator == 0) { "Reciprocal of zero".error; ^nil };
+		^this.class.new(denominator, numerator)
+	}
 
-    asFloat { ^(this.numerator / this.denominator).asFloat }
+	neg { ^this.class.new(numerator.neg, denominator) }
+	abs { ^this.class.new(numerator.abs, denominator) }
+	squared { ^this.pow(2) }
+	cubed { ^this.pow(3) }
 
-    asInteger { ^(this.numerator / this.denominator).asInteger }
+	pow { arg n;
+		var result, base;
+		^case
+		{ n == 0 } { this.class.new(1, 1) }
+		{ n > 0 } {
+			result = this.class.new(1, 1);
+			base = this;
+			n = n.asInteger;
+			while { n > 0 } {
+				if (n.odd) { result = result * base };
+				base = base * base;
+				n = n >> 1;
+			};
+			result
+		}
+		{ n < 0 } {
+			if (numerator == 0) { "Zero to negative power undefined".error; nil }
+			{ this.reciprocal.pow(n.abs) }
+		}
+	}
 
-    asInt { ^this.asInteger }
+	simplify { arg maxDenominator=20, fasterBetter=false;
+		var frac = (numerator / denominator).asFraction(maxDenominator, fasterBetter);
+		^Rational(frac[0], frac[1])
+	}
 
-    reciprocal { ^this.class.new(this.denominator, this.numerator) }
+	performBinaryOpOnSimpleNumber { arg aSelector, aNumber, adverb;
+		^aNumber.asRational.perform(aSelector, this, adverb)
+	}
 
-    printOn { arg stream;
-        stream <<  numerator.asString.replace(".0","") << "%/" << denominator.asString.replace(".0","")
-    }
+	hash { ^this.instVarHash }
 
-    storeOn { arg stream;
-        stream <<  numerator.asString.replace(".0","") << "%/" << denominator.asString.replace(".0","")
-    }
+	printOn { arg stream;
+		stream << numerator.asString.replace(".0", "") << "%/" << denominator.asString.replace(".0", "")
+	}
 
-    isNaN { ^false }
-
-    hash { ^this.instVarHash }
-
-    + { arg aNumber, adverb;
-        ^this.class.new(
-            (this.numerator * aNumber.denominator) + (this.denominator * aNumber.numerator),
-            this.denominator * aNumber.denominator)
-    }
-
-    - { arg aNumber, adverb;
-        ^this.class.new(
-            (this.numerator * aNumber.denominator) - (this.denominator * aNumber.numerator),
-            this.denominator * aNumber.denominator)
-    }
-
-    * { arg aNumber, adverb;
-        ^this.class.new(
-            this.numerator * aNumber.numerator,
-            this.denominator * aNumber.denominator)
-    }
-
-    / { arg aNumber, adverb;
-        ^this.class.new(
-            this.numerator * aNumber.denominator,
-            this.denominator * aNumber.numerator)
-    }
-
-    == { arg aNumber, adverb;
-        ^(this.numerator * aNumber.denominator) == (this.denominator * aNumber.numerator)
-    }
-
-    != { arg aNumber, adverb;
-        ^(this.numerator * aNumber.denominator) != (this.denominator * aNumber.numerator)
-    }
-
-    pow { arg n;
-        ^case
-        { n == 0 } { this.class.new(1,1) }
-        { n > 0 } {
-            this.class.new(
-                this.numerator.pow(n),
-                this.denominator.pow(n)
-            )
-        }
-        { n < 0  } {
-            if((this.numerator == 0).not) {
-                this.reciprocal.pow(n.abs)
-            } {
-                "Rational has zero denominator.".error
-            }
-        }
-    }
-
-
-    numeratorIsPowerOfTwo { ^this.numerator.asInteger.isPowerOfTwo }
-
-    denominatorIsPowerOfTwo { ^this.denominator.asInteger.isPowerOfTwo }
-
-    simplify { arg maxDenominator=20, fasterBetter=false;
-        ^this.asFloat.asRational(maxDenominator,fasterBetter)
-    }
-
-    < { arg aNumber;
-        ^(this.numerator * aNumber.denominator) < (this.denominator * aNumber.numerator)
-    }
-
-    > { arg aNumber;
-        ^(this.numerator * aNumber.denominator) > (this.denominator * aNumber.numerator)
-    }
-
-    <= { arg aNumber;
-        ^(this.numerator * aNumber.denominator) <= (this.denominator * aNumber.numerator)
-    }
-
-    >= { arg aNumber;
-        ^(this.numerator * aNumber.denominator) >= (this.denominator * aNumber.numerator)
-    }
-
-    isNegative { ^this.numerator.isNegative }
-
-    isPositive { ^this.numerator.isPositive }
-
-    neg { ^this * -1 }
-
-    squared { ^this.pow(2) }
-
-    cubed { ^this.pow(3) }
-
-    abs { ^this.class.new(numerator.abs, denominator) }
-
+	storeOn { arg stream;
+		stream << numerator.asString.replace(".0", "") << "%/" << denominator.asString.replace(".0", "")
+	}
 }
 
 + SimpleNumber {
-    asRational { arg maxDenominator=100,fasterBetter=false;
-        var fraction;
-        if (this == inf) { ^inf } {
-            fraction = this.asFraction(maxDenominator, fasterBetter);
-            ^Rational(fraction[0], fraction[1])
-        }
-    }
+	asRational { arg maxDenominator=100, fasterBetter=false;
+		var fraction;
+		if (this.abs == inf) { ^this };
+		fraction = this.asFraction(maxDenominator, fasterBetter);
+		^Rational(fraction[0], fraction[1])
+	}
 
-    %/ { arg aNumber; ^Rational(this, aNumber) }
+	%/ { arg aNumber; ^Rational(this, aNumber) }
 
-    performBinaryOpOnRational { arg aSelector, rational, adverb;
-        ^rational.perform(aSelector, this.asRational, adverb)
-    }
+	performBinaryOpOnRational { arg aSelector, rational, adverb;
+		^rational.perform(aSelector, this.asRational, adverb)
+	}
 }
 
 + Integer {
-    asRational { ^Rational(this, 1) }
-    as { arg aSimilarClass; ^aSimilarClass.new(this.numerator, 1 ) }
+	asRational { ^Rational(this, 1) }
 }
 
 + Number {
-    numerator { ^this }
-    denominator { ^1 }
-    rational { arg denominator=1; ^Rational(this, denominator) }
+	numerator { ^this }
+	denominator { ^1 }
+	rational { arg denominator=1; ^Rational(this, denominator) }
 }
 
 + SequenceableCollection {
-    asRational { arg maxDenominator = 100;
-        ^this.collect { |item| item.asRational(maxDenominator) }
-    }
+	asRational { arg maxDenominator=100;
+		^this.collect { |item| item.asRational(maxDenominator) }
+	}
 }
 
 + String {
-    asRational {
-        var stringArray = this.split($/ );
-        ^Rational(stringArray[0].asFloat, stringArray[1].asFloat)
-    }
+	asRational {
+		var parts = this.replace("%", "").split($/).collect(_.stripWhiteSpace);
+		^Rational(parts[0].asFloat, parts[1].asFloat)
+	}
 }
 
 + AbstractFunction {
-    performBinaryOpOnRational { arg aSelector, aRational, adverb;
-        ^this.reverseComposeBinaryOp(aSelector, aRational, adverb)
-    }
+	performBinaryOpOnRational { arg aSelector, aRational, adverb;
+		^this.reverseComposeBinaryOp(aSelector, aRational, adverb)
+	}
 }
 
 + Object {
-    isRational { ^false }
-    performBinaryOpOnRational { arg aSelector, thing, adverb;
-        ^this.performBinaryOpOnSomething(aSelector, thing, adverb)
-    }
+	isRational { ^false }
+	performBinaryOpOnRational { arg aSelector, thing, adverb;
+		^this.performBinaryOpOnSomething(aSelector, thing, adverb)
+	}
 }
