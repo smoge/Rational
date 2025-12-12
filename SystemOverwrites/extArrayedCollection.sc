@@ -25,6 +25,17 @@
     storeArgs { ^[list, repeats] }
 }
 
++ Event {
+    delta {
+        var dominated, delta;
+        ^(this[\delta] ?? {
+            dominated = this[\dur] ?? { 1.0 };
+            dominated = if (dominated.isKindOf(Rational)) { dominated.asFloat } { dominated };
+            dominated * this[\stretch] ?? { 1.0 } - (this[\lag] ?? { 0.0 }) - (this[\timingOffset] ?? { 0.0 })
+        })
+    }
+}
+
 + Pseq {
     embedInStream { |inval|
         var item, offsetValue;

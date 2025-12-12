@@ -86,6 +86,15 @@ Rational : Number {
 
 	isRational { ^true }
 
+	doesNotUnderstand { |selector ...args|
+		var float = this.asFloat;
+		if (float.respondsTo(selector)) {
+			^float.performList(selector, args)
+		} {
+			^super.doesNotUnderstand(selector, *args)
+		}
+	}
+
 	isNaN { ^numerator.isNaN or: { denominator.isNaN }}
 
 	isNegative { ^numerator.isNegative }
@@ -99,6 +108,7 @@ Rational : Number {
 	asInt { ^this.asInteger }
 
 	%/ { arg aNumber; ^this.class.new(this, aNumber) }
+
 
 	+ { arg aNumber, adverb;
 		var g, n, d;
