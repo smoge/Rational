@@ -1,18 +1,15 @@
 /*
-Rational Numbers
-
-Rational lets you write rhythms and intervals the way musicians
-actually think about them: as fractions.
+Rational Numbers for SuperCollider
 
 Instead of representing values like 1/3 or 3/8 as floating-point numbers,
 Rational keeps them as numerator/denominator pairs and only converts to
-floats when absolutely necessary (for scheduling or DSP).
+floats when necessary.
 
-This is especially useful for musical work:
+This is useful for:
 
-- rhythmic notation that stays exact
+- rhythmic notation
 - polyrhythms without drift
-- just-intonation ratios
+- pitch ratios
 - symbolic time calculations
 
 Installation:
@@ -180,7 +177,7 @@ Pitch
 var fifth  = 3 %/ 2;
 var fourth = 4 %/ 3;
 
-fifth * fourth;        // octave
+fifth * fourth;        // -> octave
 fifth.reciprocal;
 )
 
