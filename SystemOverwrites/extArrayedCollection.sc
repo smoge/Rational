@@ -1,12 +1,12 @@
 + ArrayedCollection {
-    plot { |name, bounds, discrete = false, numChannels, minval, maxval, separately = true|
+    plot { |name, bounds, discrete = false, numChannels, minval, maxval, separately = true, parent|
         var array, plotter;
         array = this.as(Array);
         if (array.maxDepth > 3) {
             "Cannot currently plot an array with more than 3 dimensions".warn;
             ^nil
         };
-        plotter = Plotter(name, bounds);
+        plotter = Plotter(name, bounds, parent);
         if (discrete) { plotter.plotMode = \points };
         numChannels !? { array = array.unlace(numChannels) };
         array = array.collect { |elem|
