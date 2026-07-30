@@ -1,6 +1,39 @@
 Rational : Number {
 	var <numerator, <denominator;
 
+	// Note [Precision]
+	// numerator and denominator are always Float, never Integer.
+	//
+	// An sclang Integer is 32 bits and wraps past
+	// 2147483647 with no warning. A Float is an IEEE double and holds every
+	// integer exactly up to 2^53.
+	//
+	// When writing large values: sclang wraps integer literals while
+	// parsing, before Rational ever sees them.
+	//
+	//   Rational(3000000000, 1)      // reads as Rational(-1294967296, 1)
+	//   Rational(3000000000.0, 1.0)  // the ".0" makes it a Float
+	//
+	// See Note [Cross-reduction] for the arithmetic precision rule.
+	// See Note [Rational bounds] in Tests/TestRacional.sc for test limits.
+
+	// Note [Cross-reduction]
+	// Rational arithmetic cancels common factors before it multiplies.
+	//
+	// For * and /, factors are cancelled across opposite terms:
+	//
+	//   (a/b) * (c/d)  cancels a with d, and c with b
+	//   (a/b) / (c/d)  cancels a with c, and b with d
+	//
+	// For + and -, common denominator factors are cancelled before the two
+	// cross-products are built.
+	//
+	// This keeps intermediate values smaller when operands share factors, and
+	// it avoids some avoidable loss of Float precision. It does not make the
+	// range unlimited. If there is nothing to cancel, one operation on values
+	// near M can still build intermediates near M^2, and chained operations can
+	// reach M^3.
+
 	*new { arg numerator=1.0, denominator=1.0;
 		if (numerator.isKindOf(String)) { ^numerator.asRational };
 		if (numerator.isNaN || denominator.isNaN) { ^0/0 };
@@ -20,13 +53,22 @@ Rational : Number {
 		^super.newCopyArgs(numerator, denominator).reduce
 	}
 
+	// Fast constructor for normalized terms. Use this only when the caller
+	// already knows the terms are reduced.
 	*fromReducedTerms { arg numerator=1.0, denominator=1.0;
 		if (denominator == 0) { "Rational has zero denominator".error; ^nil };
 		if (denominator < 0) {
 			numerator = numerator.neg;
 			denominator = denominator.neg;
 		};
-		^super.newCopyArgs(numerator, denominator);
+		^super.newCopyArgs(numerator.asFloat, denominator.asFloat);
+	}
+
+	// Fast constructor for internal arithmetic. It reduces and normalizes sign,
+	// while skipping Rational.new's parsing, infinity, NaN, and fractional checks.
+	*fromTerms { arg numerator=1.0, denominator=1.0;
+		if (denominator == 0) { "Rational has zero denominator".error; ^nil };
+		^super.newCopyArgs(numerator, denominator).reduce
 	}
 
 	*newFrom { arg that; ^that.asRational }
@@ -42,8 +84,8 @@ Rational : Number {
 		var d;
 		if (numerator.frac == 0 and: denominator.frac == 0) {
 			d = this.class.gcd(numerator, denominator);
-			numerator = numerator div: d;
-			denominator = denominator div: d;
+			numerator = numerator / d;
+			denominator = denominator / d;
 			if (denominator < 0) {
 				numerator = numerator.neg;
 				denominator = denominator.neg;
@@ -113,21 +155,33 @@ Rational : Number {
 	+ { arg aNumber, adverb;
 		var g, n, d;
 		aNumber = aNumber.asRational;
+		if (this.denominator == 1 and: { aNumber.denominator == 1 }) {
+			^this.class.fromReducedTerms(this.numerator + aNumber.numerator, 1.0)
+		};
+		if (this.denominator == aNumber.denominator) {
+			^this.class.fromTerms(this.numerator + aNumber.numerator, this.denominator)
+		};
 		g = this.class.gcd(this.denominator, aNumber.denominator);
-		n = (this.numerator * (aNumber.denominator div: g)) +
-		(aNumber.numerator * (this.denominator div: g));
-		d = (this.denominator div: g) * aNumber.denominator;
-		^this.class.new(n, d)
+		n = (this.numerator * (aNumber.denominator / g)) +
+		(aNumber.numerator * (this.denominator / g));
+		d = (this.denominator / g) * aNumber.denominator;
+		^this.class.fromTerms(n, d)
 	}
 
 	- { arg aNumber, adverb;
 		var g, n, d;
 		aNumber = aNumber.asRational;
+		if (this.denominator == 1 and: { aNumber.denominator == 1 }) {
+			^this.class.fromReducedTerms(this.numerator - aNumber.numerator, 1.0)
+		};
+		if (this.denominator == aNumber.denominator) {
+			^this.class.fromTerms(this.numerator - aNumber.numerator, this.denominator)
+		};
 		g = this.class.gcd(this.denominator, aNumber.denominator);
-		n = (this.numerator * (aNumber.denominator div: g)) -
-		(aNumber.numerator * (this.denominator div: g));
-		d = (this.denominator div: g) * aNumber.denominator;
-		^this.class.new(n, d)
+		n = (this.numerator * (aNumber.denominator / g)) -
+		(aNumber.numerator * (this.denominator / g));
+		d = (this.denominator / g) * aNumber.denominator;
+		^this.class.fromTerms(n, d)
 	}
 
 	* { arg aNumber, adverb;
@@ -135,9 +189,9 @@ Rational : Number {
 		aNumber = aNumber.asRational;
 		g1 = this.class.gcd(this.numerator.abs, aNumber.denominator.abs);
 		g2 = this.class.gcd(aNumber.numerator.abs, this.denominator.abs);
-		n = (this.numerator div: g1) * (aNumber.numerator div: g2);
-		d = (this.denominator div: g2) * (aNumber.denominator div: g1);
-		^this.class.new(n, d)
+		n = (this.numerator / g1) * (aNumber.numerator / g2);
+		d = (this.denominator / g2) * (aNumber.denominator / g1);
+		^this.class.fromReducedTerms(n, d)
 	}
 
 	/ { arg aNumber, adverb;
@@ -146,9 +200,9 @@ Rational : Number {
 		if (aNumber.numerator == 0) { "Division by zero".error; ^nil };
 		g1 = this.class.gcd(this.numerator.abs, aNumber.numerator.abs);
 		g2 = this.class.gcd(this.denominator.abs, aNumber.denominator.abs);
-		n = (this.numerator div: g1) * (aNumber.denominator div: g2);
-		d = (this.denominator div: g2) * (aNumber.numerator div: g1);
-		^this.class.new(n, d)
+		n = (this.numerator / g1) * (aNumber.denominator / g2);
+		d = (this.denominator / g2) * (aNumber.numerator / g1);
+		^this.class.fromReducedTerms(n, d)
 	}
 
 	== { arg aNumber, adverb;
@@ -164,9 +218,12 @@ Rational : Number {
 	compareValue { arg aNumber;
 		var g, lhs, rhs;
 		aNumber = aNumber.asRational;
+		if (this.denominator == aNumber.denominator) {
+			^(this.numerator - aNumber.numerator).sign
+		};
 		g = this.class.gcd(this.denominator, aNumber.denominator);
-		lhs = this.numerator * (aNumber.denominator div: g);
-		rhs = aNumber.numerator * (this.denominator div: g);
+		lhs = this.numerator * (aNumber.denominator / g);
+		rhs = aNumber.numerator * (this.denominator / g);
 		^(lhs - rhs).sign
 	}
 
@@ -177,20 +234,20 @@ Rational : Number {
 
 	reciprocal {
 		if (numerator == 0) { "Reciprocal of zero".error; ^nil };
-		^this.class.new(denominator, numerator)
+		^this.class.fromReducedTerms(denominator, numerator)
 	}
 
-	neg { ^this.class.new(numerator.neg, denominator) }
-	abs { ^this.class.new(numerator.abs, denominator) }
+	neg { ^this.class.fromReducedTerms(numerator.neg, denominator) }
+	abs { ^this.class.fromReducedTerms(numerator.abs, denominator) }
 	squared { ^this.pow(2) }
 	cubed { ^this.pow(3) }
 
 	pow { arg n;
 		var result, base;
 		^case
-		{ n == 0 } { this.class.new(1, 1) }
+		{ n == 0 } { this.class.fromReducedTerms(1.0, 1.0) }
 		{ n > 0 } {
-			result = this.class.new(1, 1);
+			result = this.class.fromReducedTerms(1.0, 1.0);
 			base = this;
 			n = n.asInteger;
 			while { n > 0 } {
@@ -242,7 +299,7 @@ Rational : Number {
 }
 
 + Integer {
-	asRational { ^Rational(this, 1) }
+	asRational { ^Rational.fromReducedTerms(this, 1) }
 }
 
 + Number {
