@@ -1,26 +1,37 @@
 Rational : Number {
 	var <numerator, <denominator;
 
+
 	// Note [Precision]
-	// numerator and denominator are always Float, never Integer.
+	// ~~~~~~~~~~~~~~~~
 	//
-	// An sclang Integer is 32 bits and wraps past
-	// 2147483647 with no warning. A Float is an IEEE double and holds every
-	// integer exactly up to 2^53.
+	// Numerator and denominator are always Float, never Integer.
 	//
-	// When writing large values: sclang wraps integer literals while
-	// parsing, before Rational ever sees them.
+	// An sclang Integer is 32 bits and wraps past 2147483647 with no warning. A
+	// Float is an IEEE double and holds every integer exactly up to 2^53.
+	//
+	// Nothing type-checks that. fromReducedTerms coerces with .asFloat, every
+	// other path leans on reduce dividing both terms by gcd, since sclang's
+	// Integer / Integer returns a Float even when gcd is 1. Let reduce skip that
+	// division (fast path for gcd 1) and Integer terms slip through.
+	// test_Components_StoredAsFloat guards this.
+	//
+	// When writing large values: sclang wraps integer literals while parsing,
+	// before Rational ever sees them.
 	//
 	//   Rational(3000000000, 1)      // reads as Rational(-1294967296, 1)
 	//   Rational(3000000000.0, 1.0)  // the ".0" makes it a Float
 	//
 	// See Note [Cross-reduction] for the arithmetic precision rule.
-	// See Note [Rational bounds] in Tests/TestRacional.sc for test limits.
+	// See Note [Rational bounds] in Tests/TestRational.sc for test limits.
+
 
 	// Note [Cross-reduction]
+	// ~~~~~~~~~~~~~~~~~~~~~~
+	//
 	// Rational arithmetic cancels common factors before it multiplies.
 	//
-	// For * and /, factors are cancelled across opposite terms:
+	// For * and / factors are cancelled across opposite terms:
 	//
 	//   (a/b) * (c/d)  cancels a with d, and c with b
 	//   (a/b) / (c/d)  cancels a with c, and b with d
@@ -28,11 +39,20 @@ Rational : Number {
 	// For + and -, common denominator factors are cancelled before the two
 	// cross-products are built.
 	//
-	// This keeps intermediate values smaller when operands share factors, and
-	// it avoids some avoidable loss of Float precision. It does not make the
-	// range unlimited. If there is nothing to cancel, one operation on values
-	// near M can still build intermediates near M^2, and chained operations can
-	// reach M^3.
+	// For * and / this also keeps the result canonical: if a/b and c/d are both in
+	// lowest terms, cancelling gcd(a,d) and gcd(c,b) leaves the product in lowest
+	// terms. That's why * and / may call fromReducedTerms and skip reduce, and it
+	// is what == (which compares terms directly) and test_NormalizedForm depend
+	// on.
+	//
+	// This keeps intermediate values smaller when operands share factors, and it
+	// avoids some loss of precision. Of course, it doesn't make the range
+	// unlimited. With nothing to cancel and all terms bounded by M, a single * or
+	// / builds intermediates near M^2, and a single + or - near 2 * M^2, since it
+	// sums two cross-products. Chaining has no ceiling: k operands chained with +
+	// or - reach k * M^k, with * or / they reach M^k. See Note [Rational bounds]
+	// in Tests/TestRational.sc.
+
 
 	*new { arg numerator=1.0, denominator=1.0;
 		if (numerator.isKindOf(String)) { ^numerator.asRational };
@@ -53,8 +73,8 @@ Rational : Number {
 		^super.newCopyArgs(numerator, denominator).reduce
 	}
 
-	// Fast constructor for normalized terms. Use this only when the caller
-	// already knows the terms are reduced.
+	// Fast constructor for normalized terms. Use this only when the caller already
+	// knows the terms are reduced.
 	*fromReducedTerms { arg numerator=1.0, denominator=1.0;
 		if (denominator == 0) { "Rational has zero denominator".error; ^nil };
 		if (denominator < 0) {
