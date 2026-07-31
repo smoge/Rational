@@ -263,23 +263,28 @@ Rational : Number {
 	cubed { ^this.pow(3) }
 
 	pow { arg n;
-		var result, base;
+		var result, base, exponent;
+
+		if (n.isKindOf(Rational)) { n = n.asFloat };
+		if (n.frac != 0) { ^this.asFloat.pow(n) };
+
+		exponent = n.asInteger;
+
 		^case
-		{ n == 0 } { this.class.fromReducedTerms(1.0, 1.0) }
-		{ n > 0 } {
+		{ exponent == 0 } { this.class.fromReducedTerms(1.0, 1.0) }
+		{ exponent > 0 } {
 			result = this.class.fromReducedTerms(1.0, 1.0);
 			base = this;
-			n = n.asInteger;
-			while { n > 0 } {
-				if (n.odd) { result = result * base };
+			while { exponent > 0 } {
+				if (exponent.odd) { result = result * base };
 				base = base * base;
-				n = n >> 1;
+				exponent = exponent >> 1;
 			};
 			result
 		}
-		{ n < 0 } {
+		{ exponent < 0 } {
 			if (numerator == 0) { "Zero to negative power undefined".error; nil }
-			{ this.reciprocal.pow(n.abs) }
+			{ this.reciprocal.pow(exponent.abs) }
 		}
 	}
 

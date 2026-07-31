@@ -670,6 +670,31 @@ TestRational : UnitTest {
 		};
 	}
 
+	test_Exponentiation_NonInteger {
+		this.assertEquals(
+			(2 %/ 3).pow(2.0),
+			4 %/ 9,
+			"Integral Float exponent stays Rational",
+			isVerbose
+		);
+
+		this.assertFloatEquals(
+			(4 %/ 9).pow(0.5),
+			(4 %/ 9).asFloat.pow(0.5),
+			"Fractional exponent delegates to Float",
+			0.000001,
+			isVerbose
+		);
+
+		this.assertFloatEquals(
+			(2 %/ 3).pow(2.5),
+			(2 %/ 3).asFloat.pow(2.5),
+			"Non-integer exponent is not truncated",
+			0.000001,
+			isVerbose
+		);
+	}
+
 	// See Note [Rational bounds]. Associativity is depth 3, so it uses
 	// maxAssocIntVal instead of maxIntVal.
 	test_AssociativeAdd {
