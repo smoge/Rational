@@ -1,25 +1,3 @@
-+ ArrayedCollection {
-    plot { |name, bounds, discrete = false, numChannels, minval, maxval, separately = true, parent|
-        var array, plotter;
-        array = this.as(Array);
-        if (array.maxDepth > 3) {
-            "Cannot currently plot an array with more than 3 dimensions".warn;
-            ^nil
-        };
-        plotter = Plotter(name, bounds, parent);
-        if (discrete) { plotter.plotMode = \points };
-        numChannels !? { array = array.unlace(numChannels) };
-        array = array.collect { |elem|
-            case
-            { elem.isKindOf(Env) } { elem.asMultichannelSignal.flop }
-            { elem.isKindOf(Rational) } { elem.asFloat }
-            { elem }
-        };
-        plotter.setValue(array, findSpecs: true, separately: separately, refresh: true, minval: minval, maxval: maxval);
-        ^plotter
-    }
-}
-
 + ListPattern {
     copy { ^super.copy.list_(list.copy) }
     storeArgs { ^[list, repeats] }
