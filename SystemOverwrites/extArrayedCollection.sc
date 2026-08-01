@@ -1,8 +1,3 @@
-+ ListPattern {
-    copy { ^super.copy.list_(list.copy) }
-    storeArgs { ^[list, repeats] }
-}
-
 + Event {
     delta {
         var dominated, delta;
