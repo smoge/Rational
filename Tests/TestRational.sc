@@ -110,28 +110,28 @@ TestRational : UnitTest {
 		);
 	}
 
+	// See Note [Refusing rather than answering nil].
 	test_ZeroDenominator {
-		var r1, r2, divResult, recipResult;
-
 		[1, -1, 0, 100, -100, 0.5, pi].do { |num|
-			var rat = Rational(num, 0);
-			this.assert(rat.isNil, format("Rational(%, 0) returns nil", num));
+			this.assertException({ Rational(num, 0) }, Error,
+				format("Rational(%, 0) is refused", num));
 		};
 
-		r1 = Rational(1, 2);
-		r2 = Rational(0, 1);
-		divResult = r1 / r2;
-		this.assert(divResult.isNil, "Division by zero rational returns nil");
-
-		recipResult = Rational(0, 1).reciprocal;
-		this.assert(recipResult.isNil, "Reciprocal of zero returns nil");
+		this.assertException({ Rational(1, 2) / Rational(0, 1) }, Error,
+			"division by a zero rational is refused");
+		this.assertException({ Rational(0, 1).reciprocal }, Error,
+			"the reciprocal of zero is refused");
+		this.assertException({ Rational(1, 2).denominator_(0) }, Error,
+			"and so is setting the denominator to zero");
+		this.assertEquals(Rational(1, 2).denominator_(0.0.asInteger.max(1)).denominator, 1.0,
+			"a receiver refused mid-set is left intact", isVerbose);
 	}
 
 	test_fromReducedTerms_Validation {
 		var rat;
 
-		rat = Rational.fromReducedTerms(1, 0);
-		this.assert(rat.isNil, "fromReducedTerms(1,0) returns nil");
+		this.assertException({ Rational.fromReducedTerms(1, 0) }, Error,
+			"fromReducedTerms(1,0) is refused");
 
 		rat = Rational.fromReducedTerms(1, -2);
 		this.assert(
@@ -145,8 +145,8 @@ TestRational : UnitTest {
 			"fromTerms reduces and stores Float components"
 		);
 
-		rat = Rational.fromTerms(1, 0);
-		this.assert(rat.isNil, "fromTerms(1,0) returns nil");
+		this.assertException({ Rational.fromTerms(1, 0) }, Error,
+			"fromTerms(1,0) is refused");
 	}
 
 	test_NegativeDenominator_Normalization {
@@ -791,5 +791,100 @@ TestRational : UnitTest {
 		};
 	}
 
+	// See Note [Exact where it can be]. Match the old Float values while
+	// returning Rational results.
+	test_ExactOperationsAgreeWithFloat {
+		// Rational follows Float wrap/fold semantics, not Integer's inclusive hi.
+		// Exact inputs must match exactly; inexact inputs tolerate Float rounding.
+		var exact = [7/2, -7/2, 3, -3, 0, 5/4, -5/4, 1/8];
+		var inexact = [1/3, -1/3, 22/7, -99/7];
+		var quanta = [1, 1/2, 1/4, 2, 3];
+		var bounds = [[0, 3], [-1, 1], [2, 5]];
+		var check = { |x, tolerance|
+			var f = x.asFloat, r = x.asRational;
+			var agree = { |name, want, got|
+				this.assert((want - got).abs <= tolerance,
+					format("% of %: Float %, Rational %", name, x, want, got), isVerbose) };
+			agree.("floor", f.floor, r.floor.asFloat);
+			agree.("ceil",  f.ceil,  r.ceil.asFloat);
+			agree.("frac",  f.frac,  r.frac.asFloat);
+			this.assert(r.floor.isKindOf(Rational), format("floor of % stays rational", x));
+			this.assert(r.frac.isKindOf(Rational),  format("frac of % stays rational", x));
+			quanta.do { |q|
+				agree.("trunc",   f.trunc(q),   r.trunc(q).asFloat);
+				agree.("round",   f.round(q),   r.round(q).asFloat);
+				agree.("roundUp", f.roundUp(q), r.roundUp(q).asFloat);
+				agree.("mod",     f.mod(q),     r.mod(q).asFloat);
+			};
+			bounds.do { |b|
+				agree.("wrap", f.wrap(b[0], b[1]), r.wrap(b[0], b[1]).asFloat);
+				agree.("fold", f.fold(b[0], b[1]), r.fold(b[0], b[1]).asFloat);
+			};
+		};
+		exact.do { |x| check.(x, 0) };
+		inexact.do { |x| check.(x, 1e-12) };
+	}
+
+	// Pin Rational to continuous Float-style wrap/fold.
+	test_WrapAndFoldFollowTheContinuousSemantics {
+		this.assertEquals((5%/1).wrap(0, 3), 2%/1, "5 wraps into [0,3) as 2, not 1", isVerbose);
+		this.assertEquals((3%/1).wrap(0, 3), 0%/1, "hi is not inside the range", isVerbose);
+		this.assertEquals((5%/1).fold(0, 3), 1%/1, "and folding reflects", isVerbose);
+		this.assertEquals((1%/2).wrap(0, 0), 0%/1, "an empty range answers lo", isVerbose);
+		this.assertEquals((1%/2).fold(0, 0), 0%/1, "for both", isVerbose);
+	}
+
+	// Cases where Rational keeps exact results that Float cannot.
+	test_ExactOperationsAreExactWhereFloatWasNot {
+		this.assertEquals((1%/3).frac, 1%/3, "a third has no Float fraction", isVerbose);
+		this.assertEquals((7%/3).floor, 2%/1, "and floors exactly", isVerbose);
+		this.assertEquals((1%/3).round(1%/3), 1%/3, "rounding to a third is exact", isVerbose);
+		this.assertEquals((22%/7).trunc(1%/7), 22%/7, "and so is truncating to a seventh", isVerbose);
+		this.assert((7%/2).floor.isKindOf(Rational), "the type is closed under floor");
+		this.assert((1%/3).mod(1%/7).isKindOf(Rational), "and under mod");
+	}
+
+	// Reflection must match the forwarded selector behavior.
+	test_RespondsToAgreesWithDoesNotUnderstand {
+		var r = Rational(1, 2);
+		this.assert(r.respondsTo(\sqrt), "it answers sqrt, and says so");
+		this.assertEquals(r.sqrt, 0.5.sqrt, "with the Float answer", isVerbose);
+		this.assert(r.respondsTo(\floor), "floor is its own");
+		this.assert(r.respondsTo(\isZero), "so is isZero");
+		this.assert(r.respondsTo(\notAMethodAnywhere).not, "and nothing invents a selector");
+	}
+
+	// Rational iteration should keep the Float counts callers already observed.
+	test_IterationCountsMatchTheNumberTheyReplaced {
+		var collected = Array.new;
+		[3, 3.5, 0.5, 0, -1, 7/2].do { |x|
+			var f = 0, r = 0, fr = 0, rr = 0;
+			x.asFloat.do { f = f + 1 };
+			x.asRational.do { r = r + 1 };
+			x.asFloat.reverseDo { fr = fr + 1 };
+			x.asRational.reverseDo { rr = rr + 1 };
+			this.assertEquals(r, f, format("% iterates like its Float", x), isVerbose);
+			this.assertEquals(rr, fr, format("% reverses like its Float", x), isVerbose);
+		};
+		(7%/2).floor.do { |i| collected = collected.add(i) };
+		this.assertEquals(collected, [0, 1, 2],
+			"a floored rational iterates its whole part", isVerbose);
+	}
+
+	test_IsZero {
+		this.assert(Rational(0, 5).isZero, "zero is zero whatever the denominator");
+		this.assert(Rational(1, 2).isZero.not, "and a half is not");
+		this.assert((Rational(1, 3) - Rational(1, 3)).isZero, "nor is it reached by rounding");
+	}
+
+	// Non-numeric terms should fail on type, not by falling into isNaN.
+	test_TermsMustBeNumbers {
+		this.assertException({ Rational(\sharp, 1) }, Error, "a Symbol numerator");
+		this.assertException({ Rational(1, \sharp) }, Error, "a Symbol denominator");
+		this.assertException({ Rational([1, 2], 1) }, Error, "an Array numerator");
+		this.assertEquals(Rational("3/4"), Rational(3, 4), "a String still parses", isVerbose);
+		this.assertEquals(Rational(Rational(1, 2), 2), Rational(1, 4),
+			"and a Rational term still divides", isVerbose);
+	}
 
 }

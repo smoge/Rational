@@ -43,13 +43,32 @@ Convert when needed:
 pi.asRational(999) // -> 355 %/ 113
 ```
 
+Operations with exact rational answers return `Rational` values:
+
+```supercollider
+(7 %/ 2).floor       // -> 3 %/ 1
+(1 %/ 3).frac        // -> 1 %/ 3
+(1 %/ 3).mod(1 %/ 7) // -> 1 %/ 21
+```
+
+Other `Number` methods use `asFloat` when no rational answer exists.
+`respondsTo` reports those forwarded methods:
+
+```supercollider
+(1 %/ 3).sqrt              // -> 0.57735026918963
+(1 %/ 2).respondsTo(\sqrt) // -> true
+```
+
+Zero denominators, division by zero, reciprocal of zero, and terms that are not
+numbers throw `Error`.
+
 ## Precision Notes
 
-`Rational` stores numerator and denominator as 64-bit `Float`s. This avoids
+`Rational` stores numerator and denominator as 64 bit `Float`s. This avoids
 SuperCollider `Integer` wrapping during rational arithmetic.
 
 SuperCollider still wraps large integer literals before `Rational` sees them. If
-you need a term outside the 32-bit `Integer` range, write it with `.0`.
+you need a term outside the 32 bit `Integer` range, write it with `.0`.
 
 Arithmetic cancels common factors before multiplying where possible. This keeps
 many intermediate values smaller and preserves more precision, but it does not
@@ -62,7 +81,7 @@ TestRational.run
 ```
 
 The test suite covers construction, arithmetic, comparison, sorting, Float
-storage, large-value precision, zero denominators, `inf`, `NaN`, string parsing,
+storage, large value precision, zero denominators, `inf`, `NaN`, string parsing,
 and deterministic randomized algebra.
 
 ## More Examples

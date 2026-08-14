@@ -13,6 +13,40 @@ LIST::
 ::
 ::
 
+SUBSECTION:: What is exact, and what is not
+
+An operation with an exact rational answer gives one. code::floor::, code::ceil::,
+code::frac::, code::trunc::, code::round::, code::roundUp::, code::mod::,
+code::wrap:: and code::fold:: are closed over the rationals, and each returns a
+code::Rational::.
+
+code::
+(7 %/ 2).floor      // -> 3 %/ 1        not 3.0
+(1 %/ 3).frac       // -> 1 %/ 3        not 0.33333333333333
+(1 %/ 3).mod(1 %/ 7) // -> 1 %/ 21
+::
+
+Everything else in the link::Classes/Number:: vocabulary is answered from
+code::asFloat::, because there is no rational answer to give — a rational has no
+rational square root. code::respondsTo:: agrees with this, so a caller may ask
+before sending.
+
+code::
+(1 %/ 3).sqrt                  // -> 0.57735026918963, a Float, as it must be
+(1 %/ 2).respondsTo(\sqrt)     // -> true
+::
+
+SUBSECTION:: Refusals
+
+A denominator of zero, a division by zero and the reciprocal of zero throw.
+
+code::
+// Rational(1, 0)              // refused
+// Rational(1, 2) / Rational(0, 1)  // refused
+// Rational(0, 1).reciprocal   // refused
+// Rational(\sharp)            // refused: a term must be a number
+::
+
 CLASSMETHODS::
 
 method:: new
@@ -91,6 +125,62 @@ method:: squared
 Power of two
 code::
 Rational(5,7).squared // -> 25 %/ 49
+::
+
+method:: isZero
+Whether the numerator is zero, whatever the denominator.
+code::
+Rational(0,5).isZero // -> true
+::
+
+method:: floor, ceil
+The nearest integer below and above, as a code::Rational::.
+code::
+(7 %/ 2).floor  // -> 3 %/ 1
+(7 %/ 2).ceil   // -> 4 %/ 1
+(-7 %/ 2).floor // -> -4 %/ 1
+::
+
+method:: frac
+The part above the floor, so never negative.
+code::
+(7 %/ 2).frac  // -> 1 %/ 2
+(-7 %/ 2).frac // -> 1 %/ 2
+::
+
+method:: trunc, round, roundUp
+Quantize down, to nearest, and up. Like sclang's, these quantize toward
+code::-inf:: rather than toward zero, so code::(-7 %/ 2).trunc:: is
+code::-4 %/ 1::.
+code::
+(7 %/ 2).round(1 %/ 1)  // -> 4 %/ 1
+(1 %/ 3).round(1 %/ 3)  // -> 1 %/ 3, exactly
+(22 %/ 7).trunc(1 %/ 7) // -> 22 %/ 7
+::
+
+method:: mod
+Remainder, taking the sign of the divisor as sclang's does.
+code::
+(1 %/ 3).mod(1 %/ 7) // -> 1 %/ 21
+::
+
+method:: wrap, fold
+Map into a range, wrapping or reflecting. These follow the
+link::Classes/Float:: definitions, where code::hi:: is outside the range —
+note::
+code::Integer:wrap:: and code::Float:wrap:: are different operations in sclang.
+code::5.wrap(0,3):: is code::1:: and code::5.0.wrap(0,3):: is code::2.0::. A
+code::Rational:: is a continuous quantity, so it follows the Float one.
+::
+code::
+(5 %/ 1).wrap(0, 3) // -> 2 %/ 1
+(5 %/ 1).fold(0, 3) // -> 1 %/ 1
+::
+
+method:: do, reverseDo
+Iterate as a number, counting exactly as the equivalent Float does.
+code::
+(7 %/ 2).floor.do { |i| i.postln };  // 0, 1, 2
 ::
 
 EXAMPLES::
@@ -244,4 +334,3 @@ s.waitForBoot {
 }
 )
 ::
-

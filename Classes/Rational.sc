@@ -56,8 +56,10 @@ Rational : Number {
 
 	*new { arg numerator=1.0, denominator=1.0;
 		if (numerator.isKindOf(String)) { ^numerator.asRational };
+		this.prCheckTerm(numerator, "numerator");
+		this.prCheckTerm(denominator, "denominator");
 		if (numerator.isNaN || denominator.isNaN) { ^0/0 };
-		if (denominator == 0) { "Rational has zero denominator".warn; ^nil };
+		if (denominator == 0) { this.prRefuseZeroDenominator };
 		if (numerator == inf) { ^inf };
 		if (numerator == -inf) { ^-inf };
 		if (denominator == inf) { ^Rational(0, 1) };
@@ -76,7 +78,7 @@ Rational : Number {
 	// Fast constructor for normalized terms. Use this only when the caller already
 	// knows the terms are reduced.
 	*fromReducedTerms { arg numerator=1.0, denominator=1.0;
-		if (denominator == 0) { "Rational has zero denominator".error; ^nil };
+		if (denominator == 0) { this.prRefuseZeroDenominator };
 		if (denominator < 0) {
 			numerator = numerator.neg;
 			denominator = denominator.neg;
@@ -87,11 +89,38 @@ Rational : Number {
 	// Fast constructor for internal arithmetic. It reduces and normalizes sign,
 	// while skipping Rational.new's parsing, infinity, NaN, and fractional checks.
 	*fromTerms { arg numerator=1.0, denominator=1.0;
-		if (denominator == 0) { "Rational has zero denominator".error; ^nil };
+		if (denominator == 0) { this.prRefuseZeroDenominator };
 		^super.newCopyArgs(numerator, denominator).reduce
 	}
 
 	*newFrom { arg that; ^that.asRational }
+
+	// Note [Refusing rather than answering nil]
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//
+	// A zero denominator, a division by zero and the reciprocal of zero used to
+	// warn and answer nil. nil is a value, so it travels: it reaches a caller
+	// that never asked, and the warning is long gone by the time anything goes
+	// wrong. A downstream quark spelled `MusicPitch(\\c, 1%/0)` as a C natural
+	// for exactly this reason - nil arrived where an alteration was expected and
+	// was read as "none given".
+	//
+	// These throw now. It is a breaking change against a published quark, and
+	// the tests that asserted nil were updated with it.
+
+	*prRefuseZeroDenominator {
+		Error("Rational: a denominator of zero has no value. Nothing in the "
+			"rationals divides by zero, so this is refused where it was "
+			"written rather than answered with nil.").throw
+	}
+
+	// A term must be a number. Without this the first thing a non-number meets
+	// is `isNaN` below, and the error names that rather than the argument.
+	*prCheckTerm { arg value, what;
+		if (value.isNumber) { ^value };
+		Error("Rational: % is not a number, so it cannot be a %.".format(
+			value.asCompileString, what)).throw
+	}
 
 	*gcd { arg a, b;
 		a = a.abs;
@@ -137,9 +166,10 @@ Rational : Number {
 	}
 
 	denominator_ { arg newDenominator=1.0;
+		// Checked before the assignment, so a refusal leaves the receiver intact.
+		if (newDenominator == 0) { this.class.prRefuseZeroDenominator };
 		denominator = newDenominator;
 		if (denominator.isNaN) { ^0/0 };
-		if (denominator == 0) { "Rational has zero denominator".error; ^nil };
 		if (denominator.frac != 0) { ^(numerator/denominator).asRational };
 		if (denominator == inf) { ^this.class.new(0, 1) };
 		if (denominator == -inf) { ^0 };
@@ -148,6 +178,29 @@ Rational : Number {
 
 	isRational { ^true }
 
+	// Note [Exact where it can be]
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//
+	// doesNotUnderstand answers any selector this class lacks from this.asFloat.
+	// For most of the Number vocabulary that is right: a rational has no
+	// rational square root, so sqrt, sin, log and midicps give Floats and should.
+	//
+	// It was also answering the operations that DO have exact rational results.
+	// floor, ceil, round, roundUp, trunc, frac, mod, wrap and fold are closed
+	// over the rationals, and each returned a Float:
+	//
+	//   (7%/2).floor  ->  3.0                where 3%/1 is exact
+	//   (1%/3).frac   ->  0.33333333333333   where 1%/3 is exact
+	//
+	// Wrong rather than lossy, and silent. They are defined below, so the
+	// fallback no longer sees them; test_ExactOperationsAgreeWithFloat pins each
+	// against the Float it stands in for, since matching sclang matters more
+	// here than matching any textbook. sclang quantizes downward rather than
+	// toward zero - (-3.5).trunc is -4.0 - and its frac is never negative.
+	//
+	// respondsTo is overridden to agree with the fallback. Left alone, a
+	// Rational answers sqrt while reporting that it cannot, which defeats every
+	// caller that asks before sending.
 	doesNotUnderstand { |selector ...args|
 		var float = this.asFloat;
 		if (float.respondsTo(selector)) {
@@ -155,6 +208,65 @@ Rational : Number {
 		} {
 			^super.doesNotUnderstand(selector, *args)
 		}
+	}
+
+	respondsTo { arg selector;
+		^super.respondsTo(selector) or: { this.asFloat.respondsTo(selector) }
+	}
+
+	isZero { ^numerator == 0 }
+
+	// Object:do runs its function once; SimpleNumber:do counts. floor answers a
+	// Rational now, so `x.floor.do { }` would silently run once where it ran
+	// three times before - a quieter wrong than the Float it replaced. Both
+	// follow sclang's counts exactly, quirks included: 3.5.do yields three
+	// values and 3.5.reverseDo yields four. do yields the counter as an Integer,
+	// which is what a loop index is for; reverseDo counts down from this - 1, so
+	// its values are rational whenever the receiver is.
+	do { arg function;
+		var i = 0, limit = this.asInteger;
+		while { i < limit } { function.value(i, i); i = i + 1 }
+	}
+
+	reverseDo { arg function;
+		var i = 0, j = this - 1;
+		while { i < this } { function.value(j, i); j = j - 1; i = i + 1 }
+	}
+
+	// reduce leaves the denominator positive, so the quotient needs no sign
+	// correction and floor is floor of the terms.
+	floor { ^this.class.fromReducedTerms((numerator / denominator).floor, 1.0) }
+	ceil  { ^this.class.fromReducedTerms((numerator / denominator).ceil, 1.0) }
+
+	// The part above the floor, so never negative: (-7%/2).frac is 1%/2.
+	frac { ^this - this.floor }
+
+	trunc   { arg quantum = 1; ^(this / quantum).floor * quantum }
+	roundUp { arg quantum = 1; ^(this / quantum).ceil * quantum }
+	round   { arg quantum = 1;
+		^((this / quantum) + this.class.fromReducedTerms(1.0, 2.0)).floor * quantum
+	}
+
+	mod { arg aNumber; ^this - (aNumber * (this / aNumber).floor) }
+
+	wrap { arg lo, hi;
+		var range;
+		lo = lo.asRational; hi = hi.asRational;
+		range = hi - lo;
+		if (range.isZero) { ^lo };
+		^lo + (this - lo).mod(range)
+	}
+
+	fold { arg lo, hi;
+		var range, range2, x, c;
+		lo = lo.asRational; hi = hi.asRational;
+		range = hi - lo;
+		if (range.isZero) { ^lo };
+		range2 = range + range;
+		x = this - lo;
+		c = x - (range2 * (x / range2).floor);
+		if (c >= range) { c = range2 - c };
+		^c + lo
 	}
 
 	isNaN { ^numerator.isNaN or: { denominator.isNaN }}
@@ -217,7 +329,7 @@ Rational : Number {
 	/ { arg aNumber, adverb;
 		var g1, g2, n, d;
 		aNumber = aNumber.asRational;
-		if (aNumber.numerator == 0) { "Division by zero".error; ^nil };
+		if (aNumber.numerator == 0) { Error("Rational: division by zero.").throw };
 		g1 = this.class.gcd(this.numerator.abs, aNumber.numerator.abs);
 		g2 = this.class.gcd(this.denominator.abs, aNumber.denominator.abs);
 		n = (this.numerator / g1) * (aNumber.denominator / g2);
@@ -253,7 +365,7 @@ Rational : Number {
 	>= { arg aNumber; ^this.compareValue(aNumber) >= 0 }
 
 	reciprocal {
-		if (numerator == 0) { "Reciprocal of zero".error; ^nil };
+		if (numerator == 0) { Error("Rational: zero has no reciprocal.").throw };
 		^this.class.fromReducedTerms(denominator, numerator)
 	}
 
