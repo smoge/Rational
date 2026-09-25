@@ -26,6 +26,15 @@ Rational : Number {
 	// See Note [Rational bounds] in Tests/TestRational.sc for test limits.
 
 
+	// Note [Negative zero]
+	// ~~~~~~~~~~~~~~~~~~~~
+	//
+	// Zero has one rational value. Some paths produce -0.0 in the numerator,
+	// and sclang hashes that differently from 0.0. Add 0.0 at the two storage
+	// doors, fromReducedTerms and reduce, so equal zeros hash alike.
+	// test_ZeroHashesLikeZero guards this.
+
+
 	// Note [Cross-reduction]
 	// ~~~~~~~~~~~~~~~~~~~~~~
 	//
@@ -83,7 +92,8 @@ Rational : Number {
 			numerator = numerator.neg;
 			denominator = denominator.neg;
 		};
-		^super.newCopyArgs(numerator.asFloat, denominator.asFloat);
+		// See Note [Negative zero].
+		^super.newCopyArgs(numerator.asFloat + 0.0, denominator.asFloat);
 	}
 
 	// Fast constructor for internal arithmetic. It reduces and normalizes sign,
@@ -138,7 +148,9 @@ Rational : Number {
 			if (denominator < 0) {
 				numerator = numerator.neg;
 				denominator = denominator.neg;
-			}
+			};
+			// See Note [Negative zero].
+			numerator = numerator + 0.0
 		};
 		^this
 	}

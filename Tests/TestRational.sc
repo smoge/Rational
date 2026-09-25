@@ -779,6 +779,40 @@ TestRational : UnitTest {
 		};
 	}
 
+	// See Note [Negative zero] in Classes/Rational.sc. A zero reached by neg, a
+	// sign flip or arithmetic equals every other zero, so it hashes like one.
+	test_ZeroHashesLikeZero {
+		var zero = Rational(0, 1);
+		[
+			zero.neg, zero.abs, zero.floor, zero.ceil,
+			Rational(0, -5), Rational(-0.0, 1),
+			Rational(1, 2) - Rational(1, 2), Rational(-1, 2) + Rational(1, 2),
+			Rational(3, 4) * 0, Rational(-3, 4) * 0, zero / Rational(-2, 3)
+		].do { |each, i|
+			this.assert((each == zero) and: { each.hash == zero.hash },
+				"zero number % equals zero and hashes like it".format(i), isVerbose)
+		};
+		this.assertEquals(zero.neg.numerator.asCompileString, "0.0",
+			"a negated zero stores 0.0 rather than -0.0", isVerbose);
+	}
+
+	// Equal values hash alike, however each was built, so a Set or a Dictionary
+	// finds any of them.
+	test_EqualValuesHashAlike {
+		numTests.do {
+			var x = rrand(-1000, 1000), y = 1 + 1000.rand, k = 1 + 20.rand;
+			var r = Rational(x, y);
+			[
+				Rational(x * k, y * k), Rational(x.neg, y.neg), r.neg.neg,
+				(r + Rational(1, 3)) - Rational(1, 3), r * 1, r / 1
+			].do { |each|
+				this.assert((each == r) and: { each.hash == r.hash },
+					"% built another way equals it and hashes like it".format(r),
+					isVerbose)
+			}
+		};
+	}
+
 	test_NormalizedForm {
 		numTests.do {
 			var x = rrand(minIntVal, maxIntVal);
