@@ -813,6 +813,69 @@ TestRational : UnitTest {
 		};
 	}
 
+	// Avoid literal 2147483648, which wraps while parsing.
+	wholeValues {
+		^[0, 1, -1, 2, -6, 12, 127, -128, 65536, 16777217, -16777217,
+			2147483646, 2147483647, -2147483647, -2147483647 - 1]
+	}
+
+	// See Note [Whole-value hashing] in Classes/Rational.sc.
+	test_WholeValuesHashLikeEqualIntegers {
+		this.wholeValues.do { |n|
+			var r = Rational(n, 1);
+			this.assert((r == n) and: { n == r } and: { r.hash == n.hash },
+				"Rational(%, 1) equals % both ways and hashes like it".format(n, n),
+				isVerbose)
+		}
+	}
+
+	// Other Float equality goes through asFraction, so it stays out of this test.
+	test_WholeValuesHashLikeEqualFloats {
+		this.wholeValues.collect(_.asFloat).do { |x|
+			var r = Rational(x, 1);
+			this.assert((r == x) and: { x == r } and: { r.hash == x.hash },
+				"Rational(%, 1) equals % both ways and hashes like it".format(x, x),
+				isVerbose)
+		}
+	}
+
+	// Check both lookup directions, alone and in aggregate.
+	test_WholeValuesFindEachOtherInASet {
+		var integers = this.wholeValues.as(Set);
+		var rationals = this.wholeValues.collect { |n| Rational(n, 1) }.as(Set);
+		this.wholeValues.do { |n|
+			var r = Rational(n, 1);
+			this.assert(Set[n].includes(r),
+				"Set[%] includes Rational(%, 1)".format(n, n), isVerbose);
+			this.assert(Set[r].includes(n),
+				"Set[Rational(%, 1)] includes %".format(n, n), isVerbose);
+			this.assert(integers.includes(r) and: { rationals.includes(n) },
+				"a Set of every value finds % either way".format(n), isVerbose)
+		}
+	}
+
+	test_WholeValuesFindEachOtherInADictionary {
+		this.wholeValues.do { |n|
+			var r = Rational(n, 1);
+			this.assertEquals(Dictionary[n -> \found].at(r), \found,
+				"a Dictionary keyed by % answers Rational(%, 1)".format(n, n),
+				isVerbose);
+			this.assertEquals(Dictionary[r -> \found].at(n), \found,
+				"a Dictionary keyed by Rational(%, 1) answers %".format(n, n),
+				isVerbose)
+		}
+	}
+
+	// Equal members are one member, whichever type arrived first.
+	test_AMixedSetHoldsOneMemberPerValue {
+		var values = this.wholeValues;
+		var rationals = values.collect { |n| Rational(n, 1) };
+		this.assertEquals((values ++ rationals).as(Set).size, values.size,
+			"integers first", isVerbose);
+		this.assertEquals((rationals ++ values).as(Set).size, values.size,
+			"rationals first", isVerbose)
+	}
+
 	test_NormalizedForm {
 		numTests.do {
 			var x = rrand(minIntVal, maxIntVal);

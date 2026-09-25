@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+1. Whole `Rational` values now hash like Integer and Float.
+   Approximate Float equality and fraction hashes are unchanged.
+
 ## v2.0.0
 
 1. `floor`, `ceil`, `frac`, `trunc`, `round`, `roundUp`, `mod`, `wrap`, and

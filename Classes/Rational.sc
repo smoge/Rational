@@ -35,6 +35,15 @@ Rational : Number {
 	// test_ZeroHashesLikeZero guards this.
 
 
+	// Note [Whole-value hashing]
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//
+	// A whole Rational compares equal to the Integer and Float it names, so it
+	// shares their hash. Fractions keep instVarHash. Other Float equality is
+	// separate: asFraction can make several Float spellings equal one Rational.
+	// test_WholeValuesHashLikeEqualIntegers guards this.
+
+
 	// Note [Cross-reduction]
 	// ~~~~~~~~~~~~~~~~~~~~~~
 	//
@@ -421,7 +430,11 @@ Rational : Number {
 		^aNumber.asRational.perform(aSelector, this, adverb)
 	}
 
-	hash { ^this.instVarHash }
+	// See Note [Whole-value hashing].
+	hash {
+		if (denominator == 1) { ^numerator.hash };
+		^this.instVarHash
+	}
 
 	printOn { arg stream;
 		stream << numerator.asString.replace(".0", "") << "%/" << denominator.asString.replace(".0", "")
