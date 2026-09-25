@@ -876,6 +876,49 @@ TestRational : UnitTest {
 			"rationals first", isVerbose)
 	}
 
+	// A non-number may answer asRational. Equality still answers false, without
+	// throwing.
+	test_EqualityWithANonNumberIsFalse {
+		var half = Rational(1, 2);
+		var converts = (asRational: { Rational(1, 2) });
+		[converts, "1/2", \sym, nil, [1, 2]].do { |other|
+			var answer = nil, said = nil;
+			try { answer = [half == other, half != other, other == half] } { |error|
+				said = error.errorString };
+			this.assertEquals(answer, [false, true, false],
+				"non-number equality for %: %".format(other.asCompileString, said),
+				isVerbose)
+		};
+	}
+
+	// Rational refuses Complex. Complex still accepts equal zero-imaginary values
+	// from its side.
+	test_ComplexEqualityIsAsymmetric {
+		[[Rational(1, 2), Complex(0.5, 0)], [Rational(6, 1), Complex(6, 0)]].do { |pair|
+			var answer = nil, said = nil;
+			try { answer = [pair[0] == pair[1], pair[0] != pair[1], pair[1] == pair[0]] }
+				{ |error| said = error.errorString };
+			this.assertEquals(answer, [false, true, true],
+				"% vs %: Rational false, Complex true: %"
+					.format(pair[0], pair[1].asCompileString, said),
+				isVerbose)
+		};
+		this.assert((Rational(1, 2) != Complex(6, 0))
+			and: { (Complex(6, 0) == Rational(1, 2)).not },
+			"and unequal values are unequal from both sides", isVerbose);
+	}
+
+	// Integers, Floats and Rationals compare by value from either side.
+	test_EqualityWithANumberIsByValue {
+		this.assert((Rational(1, 2) == 0.5) and: { 0.5 == Rational(1, 2) },
+			"a Float", isVerbose);
+		this.assert((Rational(6, 1) == 6) and: { 6 == Rational(6, 1) },
+			"an Integer", isVerbose);
+		this.assert(Rational(1, 2) == Rational(2, 4), "a Rational", isVerbose);
+		this.assert((Rational(1, 2) != 0.25) and: { Rational(1, 2) != 1 },
+			"and unequal numbers are unequal", isVerbose);
+	}
+
 	test_NormalizedForm {
 		numTests.do {
 			var x = rrand(minIntVal, maxIntVal);

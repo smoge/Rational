@@ -4,6 +4,9 @@
 
 1. Whole `Rational` values now hash like Integer and Float.
    Approximate Float equality and fraction hashes are unchanged.
+2. `==` now compares only with Integers, Floats and Rationals. Anything else is
+   false, and `!=` negates `==`. Complex keeps its own equality, so
+   `Complex(6, 0) == Rational(6, 1)` is still true while the reverse is false.
 
 ## v2.0.0
 

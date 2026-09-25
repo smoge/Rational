@@ -44,6 +44,16 @@ Rational : Number {
 	// test_WholeValuesHashLikeEqualIntegers guards this.
 
 
+	// Note [Equality is between numbers]
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	//
+	// == compares a Rational with an Integer, Float or Rational. Anything else is
+	// false, and != negates ==. Ordering still converts. This is only the Rational
+	// side. Complex keeps its own zero-imaginary equality.
+	// test_EqualityWithANonNumberIsFalse and test_ComplexEqualityIsAsymmetric
+	// guard this.
+
+
 	// Note [Cross-reduction]
 	// ~~~~~~~~~~~~~~~~~~~~~~
 	//
@@ -358,15 +368,16 @@ Rational : Number {
 		^this.class.fromReducedTerms(n, d)
 	}
 
+	// See Note [Equality is between numbers].
 	== { arg aNumber, adverb;
+		if (aNumber.isKindOf(SimpleNumber).not and: { aNumber.isKindOf(Rational).not }) {
+			^false
+		};
 		aNumber = aNumber.asRational;
 		^(this.numerator == aNumber.numerator) and: { this.denominator == aNumber.denominator }
 	}
 
-	!= { arg aNumber, adverb;
-		aNumber = aNumber.asRational;
-		^(this.numerator != aNumber.numerator) or: { this.denominator != aNumber.denominator }
-	}
+	!= { arg aNumber, adverb; ^(this == aNumber).not }
 
 	compareValue { arg aNumber;
 		var g, lhs, rhs;
